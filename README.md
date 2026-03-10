@@ -57,3 +57,29 @@ git clone [https://github.com/gbalestro/tea.git](https://github.com/seu-usuario/
 1. `cd frontend`
 2. `npm install`
 3. `npm run dev`
+
+###🍵 TEA Project: Daily Checklist:
+On the terminal
+
+1. STARTING THE DAY (Sync)
+
+* git pull (Get latest changes)
+
+2. FRONTEND (UI)
+
+* cd frontend
+* npm run dev
+* Open http://localhost:5173
+
+3. BACKEND (Data)
+
+* cd backend
+* source venv/bin/activate (Mac/Linux) OR venv\Scripts\activate(Windows)
+* python manage.py runserver
+* Open http://127.0.0.1:8000
+
+4. FINISHING (Save)
+
+* git add .
+* git commit -m "what I did"
+* git push origin main
