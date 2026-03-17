@@ -3,7 +3,7 @@ TEA - Track Everything App 🍵 - Here you can keep track of your (or your team)
 
 # 🍵 TEA (Track Everything App)
 
-> **Time tracking should be as calm and easy as a cup of tea.**
+**Time tracking should be as calm and easy as a cup of tea.**
 
 TEA is a minimalist, user-friendly time tracking tool designed to stay out of your way while providing deep insights into where your hours go: no clutter, no steep learning curves, just clarity.
 
@@ -21,20 +21,19 @@ TEA is a minimalist, user-friendly time tracking tool designed to stay out of yo
 * **Frontend:** React.js + Vite (Fast, modern build tool)
 * **Backend:** Django (Robust Python framework)
 * **Styling:** Tailwind CSS (Utility-first CSS for a minimalist UI)
-* **Languages:** TypeScript (Frontend) & Python (Backend)
-* **Database:** SQLite (Development) / PostgreSQL (Production)
+* **Languages:** JavaScript (Frontend) & Python (Backend)
+* **Database:** SQLite (Development)
 * **API:** Django REST Framework (Communication between Front and Back)
 
-# 🎨 Philosophy
-Most time trackers feel like a boss hovering over your shoulder. TEA feels like a break. We focus on:
+## 🎨 Philosophy
 
-* Low Friction: Tracking shouldn't feel like work.
-* Privacy First: Your data stays local (or encrypted).
-* Intentionality: Knowing where your time goes helps you spend it better.
-
+Most time trackers feel like a boss hovering over your shoulder. **TEA feels like a break.** We focus on:
+* **Low Friction:** Tracking shouldn't feel like work.
+* **Privacy First:** Your data stays local (or encrypted).
+* **Intentionality:** Knowing where your time goes helps you spend it better.
 # 📄 License
 * This project is licensed under the MIT License - see the LICENSE file for details.
-* Built with ☕ (and 🍵) by [Guilherme Balestro] & [Guilherme Silveira] & [Cesar Garcia]
+* Built with ☕ (and 🍵) by **Guilherme Balestro** & **Guilherme Silveira** & **Cesar Garcia**
 
 ## 🚀 Quick Start
 
@@ -43,13 +42,16 @@ Most time trackers feel like a boss hovering over your shoulder. TEA feels like 
 # Clone the repository
 git clone [https://github.com/gbalestro/tea.git](https://github.com/seu-usuario/tea.git)
 
+# Enter the project folder
+cd tea
+
 ## 🛠️ How to run the project:
 
 ### Backend (Django)
 1. `cd backend`
 2. `python3 -m venv venv`
 3. Activate venv: `source venv/bin/activate` (Mac/Linux) ou `venv\Scripts\activate` (Windows)
-4. `pip install -r requirements.txt` (Tip: run `pip freeze > requirements.txt` before push!)
+4. `pip install django djangorestframework django-cors-headers` (Or pip install -r requirements.txt)
 5. `python manage.py migrate`
 6. `python manage.py runserver`
 
@@ -81,5 +83,5 @@ On the terminal
 4. FINISHING (Save)
 
 * git add .
-* git commit -m "what I did"
+* git commit -m "feat: what I did"
 * git push origin main
