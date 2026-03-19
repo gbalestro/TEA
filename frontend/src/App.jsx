@@ -1,109 +1,82 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import teaImage from './assets/logoTEA_PNG.png'
-import teaImageSmall from './assets/logoTEA_small.png'
-import './App.css'
+import React from 'react';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { Nav } from 'react-bootstrap';
+import './App.css'; // Importe o CSS acima
+
+import Home from './pages/Home';
+import Registro from './pages/Registro';
+import Tea from './pages/Tea';
+import Pessoas from './pages/Pessoas';
+import Locais from './pages/Locais';
+import Relatorios from './pages/Relatorios';
+
+import { useLocation } from 'react-router-dom';
 
 function App() {
-  const [count, setCount] = useState(0)
+    // Esse hook nos dá o objeto location, que contém o "pathname" (ex: /registro)
+    const location = useLocation();
+
+    // Função para formatar o nome da página baseado na rota
+    const getPageTitle = (path) => {
+      switch (path) {
+        case '/': return 'Home';
+        case '/registro': return 'Registro';
+        case '/tea': return 'Project';
+        case '/pessoas': return 'Pessoas';
+         case '/locais': return 'Locais';
+        case '/relatorios': return 'Relatórios';
+        default: return 'Dashboard';
+      }
+    };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-         <a href="https://github.com/gbalestro/TEA" target="_blank">
-          <img src={teaImage} className="base" width="170" height="179" alt="" />
-         </a>
-        </div>
-          <div>
-            <h1>TEA</h1>
-            <h2>Track Everything App</h2>  
-            <p>
-              by Gui Balestro, Gui Silveira & Cesar Garcia
-              <nav>
-                with Coffee & tea
-              </nav>
-            </p>
+      <div className="app-container">
+        
+        {/* A: SIDEBAR */}
+        <aside className="sidebar">
+          <div className="sidebar-logo" style={{ padding: '10px', fontSize: '1.5rem', fontWeight: 'bold' }}>
+            ☕ TEA
           </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Like ❤ {count}
-        </button>
-      </section>
+          <hr />
+          <Nav className="flex-column">
+            <Nav.Link as={Link} to="/tea" className="mb-2">☕ TEA Project</Nav.Link>
+            <Nav.Link as={Link} to="/registro" className="mb-2">📋 Registro</Nav.Link>
+            <Nav.Link as={Link} to="/pessoas" className="mb-2">👥 Pessoas</Nav.Link>
+            <Nav.Link as={Link} to="/locais" className="mb-2">📍 Locais</Nav.Link>
+            <Nav.Link as={Link} to="/relatorios" className="mb-2">📊 Relatórios</Nav.Link>
+          </Nav>
+          
+          {/* Espaçador para empurrar o perfil para baixo */}
+          <div style={{ marginTop: 'auto' }}>
+            <hr />
+            <div style={{ padding: '10px' }}>User Profile</div>
+            <div style={{ padding: '10px' }}>Settings</div>
+          </div>
+        </aside>
 
-      <div className="ticks"></div>
+        {/* B & C: AREA DA DIREITA */}
+        <main className="main-content">
+          
+          {/* B: ACTIVE HEADER (Opcional, pode ficar dentro das páginas) */}
+          <div style={{ padding: '15px', borderBottom: '1px solid #eee', background: '#fff' }}>
+             <strong>TEA / {getPageTitle(location.pathname)}</strong>
+          </div>
 
-      <section id="next-steps">
-        <div className='centerDiv' id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Read about our project</p>
-          <ul>
-            <li>
-              <a href="https://github.com/gbalestro/TEA/blob/main/README.md" target="_blank">
-                <img className="logo" src={teaImageSmall} alt="" />
-                Readme
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/gbalestro/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                Gui Balestro
-              </a>
-            </li>
-            <li>
-              <a href="https://github.com/silveiraguilherme" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                Gui Silveira
-              </a>
-            </li>
-            <li>
-              <a href="https://github.com/Cesargarciajr/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                Cesar Garcia
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+          {/* C: CONTEÚDO DINÂMICO */}
+          <div style={{ padding: '20px' }}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/registro" element={<Registro />} />
+              <Route path="/tea" element={<Tea />} />
+              <Route path="/pessoas" element={<Pessoas />} />
+              <Route path="/locais" element={<Locais />} />
+              <Route path="/relatorios" element={<Relatorios />} />
+            </Routes>
+          </div>
+          
+        </main>
+      </div>
+  );
 }
 
-export default App
+export default App;
