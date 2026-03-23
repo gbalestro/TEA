@@ -33,7 +33,7 @@ Most time trackers feel like a boss hovering over your shoulder. **TEA feels lik
 * **Intentionality:** Knowing where your time goes helps you spend it better.
 # 📄 License
 * This project is licensed under the MIT License - see the LICENSE file for details.
-* Built with ☕ (and 🍵) by **Guilherme Balestro** & **Guilherme Silveira** & **Cesar Garcia**
+* Built with ☕ (and 🍵) by **Guilherme Balestro**
 
 ## 🚀 Quick Start
 
