@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import teaImage from '../assets/logoTEA_PNG.png'
 import teaImageSmall from '../assets/logoTEA_small.png'
+import { FcDocument, FcCollaboration} from 'react-icons/fc'; // Para ícones de sistema coloridos
+import { BsLinkedin, BsGithub } from 'react-icons/bs';
 import '../App.css'
 
 function App() {
@@ -34,63 +36,37 @@ function App() {
 
       <section id="next-steps">
         <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
+          {/* Trocando o SVG antigo pelo componente moderno */}
+          <FcDocument className="icon" aria-hidden="true" />
+          
           <h2>Documentation</h2>
           <p style={{marginBottom: '-9px' }}>Read about our project</p>
           <ul>
             <li>
               <a href="https://github.com/gbalestro/TEA/blob/main/README.md" target="_blank"
-                 style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <img className="logo" src={teaImageSmall} alt="" />
-              <span>Readme</span>
+                <span>Readme</span>
               </a>
             </li>
           </ul>
         </div>
         <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
+          {/* Esse ícone substitui o antigo social-icon */}
+          <FcCollaboration className="icon" />
+          
+          <h2>Connect with me</h2>
           <p>Join the community</p>
           <ul>
             <li>
-              <a href="https://github.com/gbalestro/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                Gui Balestro
+              <a href="https://github.com/gbalestro/" target="_blank" rel="noopener noreferrer">
+                <BsGithub className="button-icon" style={{ color: '#181717' }} /> Github
               </a>
             </li>
             <li>
-              <a href="https://github.com/silveiraguilherme" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                Gui Silveira
-              </a>
-            </li>
-            <li>
-              <a href="https://github.com/Cesargarciajr/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                Cesar Garcia
-              </a>
+             <a href="https://www.linkedin.com/in/guilherme-balestro/" target="_blank" rel="noopener noreferrer">
+              <BsLinkedin className="button-icon" style={{ color: '#0A66C2' }} /> LinkedIn
+            </a>
             </li>
           </ul>
         </div>

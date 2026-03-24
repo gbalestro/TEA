@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { Nav } from 'react-bootstrap';
-import './App.css'; // Importe o CSS acima
+import './App.css';
 
 import Home from './pages/Home';
 import Registro from './pages/Registro';
@@ -23,7 +23,7 @@ function App() {
         case '/registro': return 'Registro';
         case '/tea': return 'Project';
         case '/pessoas': return 'Pessoas';
-         case '/locais': return 'Locais';
+        case '/locais': return 'Locais';
         case '/relatorios': return 'Relatórios';
         default: return 'Dashboard';
       }
