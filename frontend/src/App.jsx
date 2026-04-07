@@ -1,109 +1,170 @@
-import React from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Nav, Stack } from 'react-bootstrap';
-import { 
-  Speedometer2, 
-  ClipboardData, 
-  People, 
-  GeoAlt, 
-  BarChart, 
-  CupHot, 
-  Gear, 
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
+import {
+  Speedometer2,
+  ClipboardData,
+  People as PeopleIcon,
+  GeoAlt,
+  BarChart,
+  CupHot,
   PersonCircle,
-  LayoutTextWindow
+  InfoCircle,
+  MoonFill,
+  SunFill
 } from 'react-bootstrap-icons';
 import './App.css';
 
 import Home from './pages/Home';
-import Registro from './pages/Registro';
+import Registration from './pages/Registration';
 import Tea from './pages/Tea';
-import Pessoas from './pages/Pessoas';
-import Locais from './pages/Locais';
-import Relatorios from './pages/Relatorios';
-import Test from './pages/Test';
+import People from './pages/People';
+import Venues from './pages/Venues';
+import Reports from './pages/Reports';
 
 function App() {
-    // Esse hook nos dá o objeto location, que contém o "pathname" (ex: /registro)
-    const location = useLocation();
+  const { t, i18n } = useTranslation();
+  const location = useLocation();
+  const [theme, setTheme] = useState(localStorage.getItem('tea_theme') || 'light');
 
-    // Função para formatar o nome da página baseado na rota
-    const getPageTitle = (path) => {
-      switch (path) {
-        case '/': return 'Home';
-        case '/registro': return 'Registro';
-        case '/tea': return 'Project';
-        case '/pessoas': return 'Pessoas';
-        case '/locais': return 'Locais';
-        case '/relatorios': return 'Relatórios';
-        default: return 'Dashboard';
-      }
-    };
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('tea_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language.startsWith('pt') ? 'en' : 'pt';
+    i18n.changeLanguage(newLang);
+  };
+
+  const getPageConfig = (path) => {
+    switch (path) {
+      case '/': return { title: 'Dashboard', icon: <Speedometer2 /> };
+      case '/registration': return { title: t('sidebar.registration'), icon: <ClipboardData /> };
+      case '/about': return { title: t('sidebar.about'), icon: <InfoCircle /> };
+      case '/people': return { title: t('sidebar.people'), icon: <PeopleIcon /> };
+      case '/venues': return { title: t('sidebar.venues'), icon: <GeoAlt /> };
+      case '/reports': return { title: t('sidebar.reports'), icon: <BarChart /> };
+      default: return { title: 'Page', icon: <InfoCircle /> };
+    }
+  };
+
+  const { title } = getPageConfig(location.pathname);
 
   return (
-      <div className="app-container">
-        
-        {/* A: SIDEBAR */}
-        <aside className="sidebar bg-dark text-white shadow">
-          <div className="sidebar-logo d-flex align-items-center p-4" style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-            <CupHot className="me-2 text-primary" /> TEA
+    <div className="app-container">
+      {/* SIDEBAR */}
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-icon">
+            <CupHot />
           </div>
-          <hr className="mx-3 opacity-25" />
-          <Nav className="flex-column px-3 gap-1">
-            <Nav.Link as={Link} to="/" className={`text-white d-flex align-items-center p-2 ${location.pathname === '/' ? 'bg-primary rounded' : ''}`}>
-              <Speedometer2 className="me-2" /> Dashboard
-            </Nav.Link>
-            <Nav.Link as={Link} to="/test" className={`text-white d-flex align-items-center p-2 ${location.pathname === '/test' ? 'bg-primary rounded' : ''}`}>
-              <LayoutTextWindow className="me-2" /> Test
-            </Nav.Link>
-            <Nav.Link as={Link} to="/registro" className={`text-white d-flex align-items-center p-2 ${location.pathname === '/registro' ? 'bg-primary rounded' : ''}`}>
-              <ClipboardData className="me-2" /> Registro
-            </Nav.Link>
-            <Nav.Link as={Link} to="/pessoas" className={`text-white d-flex align-items-center p-2 ${location.pathname === '/pessoas' ? 'bg-primary rounded' : ''}`}>
-              <People className="me-2" /> Pessoas
-            </Nav.Link>
-            <Nav.Link as={Link} to="/locais" className={`text-white d-flex align-items-center p-2 ${location.pathname === '/locais' ? 'bg-primary rounded' : ''}`}>
-              <GeoAlt className="me-2" /> Locais
-            </Nav.Link>
-            <Nav.Link as={Link} to="/relatorios" className={`text-white d-flex align-items-center p-2 ${location.pathname === '/relatorios' ? 'bg-primary rounded' : ''}`}>
-              <BarChart className="me-2" /> Relatórios
-            </Nav.Link>
-            <Nav.Link as={Link} to="/tea" className={`text-white d-flex align-items-center p-2 ${location.pathname === '/tea' ? 'bg-primary rounded' : ''}`}>
-              <CupHot className="me-2" /> TEA Project
-            </Nav.Link>
-          </Nav>
-          
-          <div className="mt-auto p-3">
-            <hr className="opacity-25" />
-            <Stack gap={2}>
-              <div className="d-flex align-items-center p-2 opacity-75 small"><PersonCircle className="me-2" /> Administrador</div>
-              <div className="d-flex align-items-center p-2 opacity-75 small" style={{cursor: 'pointer'}}><Gear className="me-2" /> Configurações</div>
-            </Stack>
-          </div>
-        </aside>
+          TEA
+        </div>
 
-        {/* B & C: AREA DA DIREITA */}
-        <main className="main-content">
-          
-          {/* B: ACTIVE HEADER (Opcional, pode ficar dentro das páginas) */}
-          <div className="bg-white border-bottom shadow-sm px-4 py-3">
-             <span className="text-muted">TEA</span> / <strong className="text-primary">{getPageTitle(location.pathname)}</strong>
+        <nav className="sidebar-nav">
+          <NavLink to="/" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+            <Speedometer2 className="sidebar-link-icon" />
+            <span>{t('sidebar.dashboard')}</span>
+          </NavLink>
+
+          <NavLink to="/registration" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+            <ClipboardData className="sidebar-link-icon" />
+            <span>{t('sidebar.registration')}</span>
+          </NavLink>
+
+          <NavLink to="/people" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+            <PeopleIcon className="sidebar-link-icon" />
+            <span>{t('sidebar.people')}</span>
+          </NavLink>
+
+          <NavLink to="/venues" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+            <GeoAlt className="sidebar-link-icon" />
+            <span>{t('sidebar.venues')}</span>
+          </NavLink>
+
+          <NavLink to="/reports" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+            <BarChart className="sidebar-link-icon" />
+            <span>{t('sidebar.reports')}</span>
+          </NavLink>
+
+          <div style={{ marginTop: '2rem', marginBottom: '0.5rem', paddingLeft: '1rem', fontSize: '0.75rem', fontWeight: '700', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            {t('sidebar.portfolio')}
           </div>
 
-          {/* C: CONTEÚDO DINÂMICO */}
-          <div style={{ padding: '20px' }}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/test" element={<Test />} />
-              <Route path="/registro" element={<Registro />} />
-              <Route path="/tea" element={<Tea />} />
-              <Route path="/pessoas" element={<Pessoas />} />
-              <Route path="/locais" element={<Locais />} />
-              <Route path="/relatorios" element={<Relatorios />} />
-            </Routes>
+          <NavLink to="/about" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+            <InfoCircle className="sidebar-link-icon" />
+            <span>{t('sidebar.about')}</span>
+          </NavLink>
+        </nav>
+
+        <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div
+            className="theme-toggle"
+            onClick={toggleTheme}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.75rem',
+              padding: '0.5rem 1rem', borderRadius: '8px',
+              cursor: 'pointer', backgroundColor: 'rgba(255,255,255,0.05)',
+              transition: 'var(--transition)'
+            }}
+          >
+            {theme === 'light' ? <MoonFill size={18} /> : <SunFill size={18} color="#f59e0b" />}
+            <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{theme === 'light' ? t('sidebar.darkMode') : t('sidebar.lightMode')}</span>
           </div>
-          
-        </main>
-      </div>
+
+          <div
+            className="language-toggle"
+            onClick={toggleLanguage}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.75rem',
+              padding: '0.5rem 1rem', borderRadius: '8px',
+              cursor: 'pointer', backgroundColor: 'rgba(255,255,255,0.05)',
+              transition: 'var(--transition)'
+            }}
+          >
+            <span style={{ fontSize: '1.1rem' }}>{i18n.language.startsWith('pt') ? '🇮🇪' : '🇧🇷'}</span>
+            <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{i18n.language.startsWith('pt') ? 'English' : 'Português'}</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', opacity: '0.9', padding: '0 0.5rem' }}>
+            <div style={{ width: '36px', height: '36px', backgroundColor: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <PersonCircle style={{ fontSize: '1.25rem' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: '0.875rem', fontWeight: '600' }}>{t('sidebar.adminUser')}</span>
+              <span style={{ fontSize: '0.75rem', opacity: '0.6' }}>{t('sidebar.viewProfile')}</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* MAIN CONTENT AREA */}
+      <main className="main-content">
+        <header className="header">
+          <div className="header-breadcrumb">
+            <span className="header-parent">TEA System</span>
+            <span className="header-separator">/</span>
+            <span className="header-current">{title}</span>
+          </div>
+        </header>
+
+        <section className="page-container">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/registration" element={<Registration />} />
+            <Route path="/about" element={<Tea />} />
+            <Route path="/people" element={<People />} />
+            <Route path="/venues" element={<Venues />} />
+            <Route path="/reports" element={<Reports />} />
+          </Routes>
+        </section>
+      </main>
+    </div>
   );
 }
 

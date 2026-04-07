@@ -1,81 +1,105 @@
-import { useState } from 'react'
-import teaImage from '../assets/logoTEA_PNG.png'
-import teaImageSmall from '../assets/logoTEA_small.png'
-import { FcDocument, FcCollaboration} from 'react-icons/fc'; // Para ícones de sistema coloridos
-import { BsLinkedin, BsGithub } from 'react-icons/bs';
-import '../App.css'
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { BsLinkedin, BsGithub, BsCodeSlash, BsWindow } from 'react-icons/bs';
+import { FcCommandLine, FcBriefcase, FcFeedback } from 'react-icons/fc';
+import teaImage from '../assets/logoTEA_PNG.png';
+import '../App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+const Tea = () => {
+  const { t } = useTranslation();
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-         <a href="https://github.com/gbalestro/TEA" target="_blank">
-          <img src={teaImage} className="base" width="170" height="179" alt="" />
-         </a>
+    <div className="portfolio-content" style={{ maxWidth: '900px', margin: '0 auto', paddingBottom: '4rem' }}>
+      
+      {/* 🚀 HERO SECTION */}
+      <section className="page-hero">
+        <div style={{ position: 'relative', display: 'inline-block' }}>
+          <img src={teaImage} alt="TEA Logo" style={{ width: '120px', height: 'auto', marginBottom: '1.5rem', filter: 'drop-shadow(0 10px 15px rgba(99, 102, 241, 0.2))' }} />
         </div>
-          <div id='center'>
-            <h1 style={{ marginTop:'30px', marginBottom: '-9px' }}>TEA</h1>
-            <h2 style={{ marginTop: '-9px' }}>Track Everything App</h2>  
-              <p id='textCenter'>
-                by Gui Balestro, Gui Silveira & Cesar Garcia<br />
-                with ☕ Coffee & Tea 🫖
-              </p>
+        <h1 className="page-hero-title">TEA - Track Everything App</h1>
+        <p className="page-hero-subtitle">
+          {t('tea.heroSubtitle')}
+          <br />
+          {t('tea.by')} <strong style={{ color: 'var(--primary)' }}>Gui Balestro</strong>
+          <br />
+          <br />
+          <a href="https://github.com/gbalestro/TEA/blob/main/README.md" target="_blank" rel="noopener noreferrer" style={{ display: 'block', fontWeight: '600', marginTop: '0.25rem' }}>
+            {t('tea.viewReadme')}
+          </a>
+          <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', color: 'var(--primary)' }}>{t('tea.documentation')}</span>
+        </p>
+      </section>
+
+      {/* 🛠️ PROJECT OVERVIEW */}
+      <div className="card-premium">
+        <h3 style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem', gap: '0.75rem' }}>
+          <FcCommandLine style={{ fontSize: '2rem' }} /> {t('tea.architecture')}
+        </h3>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+          {t('tea.architectureDetails')}
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ padding: '1rem', backgroundColor: 'var(--background)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+            <h5 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', marginBottom: '0.5rem' }}>
+              <BsWindow /> {t('tea.frontend')}
+            </h5>
+            <span style={{ fontSize: '0.875rem' }}>React 19 + Vite + Bootstrap 5 + Vanilla CSS</span>
           </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Like ❤ {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          {/* Trocando o SVG antigo pelo componente moderno */}
-          <FcDocument className="icon" aria-hidden="true" />
-          
-          <h2>Documentation</h2>
-          <p style={{marginBottom: '-9px' }}>Read about our project</p>
-          <ul>
-            <li>
-              <a href="https://github.com/gbalestro/TEA/blob/main/README.md" target="_blank"
-                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <img className="logo" src={teaImageSmall} alt="" />
-                <span>Readme</span>
-              </a>
-            </li>
-          </ul>
+          <div style={{ padding: '1rem', backgroundColor: 'var(--background)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+            <h5 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--success)', marginBottom: '0.5rem' }}>
+              <BsCodeSlash /> {t('tea.backend')}
+            </h5>
+            <span style={{ fontSize: '0.875rem' }}>Django 5 + REST Framework + SQLite3</span>
+          </div>
         </div>
-        <div id="social">
-          {/* Esse ícone substitui o antigo social-icon */}
-          <FcCollaboration className="icon" />
-          
-          <h2>Connect with me</h2>
-          <p>Join the community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/gbalestro/" target="_blank" rel="noopener noreferrer">
-                <BsGithub className="button-icon" style={{ color: '#181717' }} /> Github
-              </a>
-            </li>
-            <li>
-             <a href="https://www.linkedin.com/in/guilherme-balestro/" target="_blank" rel="noopener noreferrer">
-              <BsLinkedin className="button-icon" style={{ color: '#0A66C2' }} /> LinkedIn
+      </div>
+
+      {/* 🕵️ ABOUT THE CREATORS */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
+        
+        {/* PERSONAL PROFILE */}
+        <div className="card-premium">
+          <h3 style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem', gap: '0.75rem' }}>
+            <FcBriefcase style={{ fontSize: '2rem' }} /> {t('tea.profile')}
+          </h3>
+          <p style={{ fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+            {t('tea.profileDetails')}
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+            <a href="https://linkedin.com/in/guilherme-balestro" target="_blank" rel="noopener noreferrer" className="tea-button-primary" style={{ gap: '0.5rem' }}>
+              <BsLinkedin /> {t('tea.linkedinGui')}
             </a>
-            </li>
-          </ul>
+            <a href="https://github.com/gbalestro" target="_blank" rel="noopener noreferrer" className="tea-button-secondary" style={{ gap: '0.5rem' }}>
+              <BsGithub /> {t('tea.githubGui')}
+            </a>
+          </div>
         </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
-}
+        {/* TEAM & COLLABORATION */}
+        <div className="card-premium">
+          <h3 style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem', gap: '0.75rem' }}>
+            <FcFeedback style={{ fontSize: '2rem' }} /> {t('tea.collaboration')}
+          </h3>
+          <p style={{ fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+            {t('tea.collaborationDetails')}
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+            <a href="https://linkedin.com/in/jpgaelzer" target="_blank" rel="noopener noreferrer" className="tea-button-primary" style={{ gap: '0.5rem' }}>
+              <BsLinkedin /> {t('tea.linkedinJoao')}
+            </a>
+            <a href="https://github.com/Mordedordelapis" target="_blank" rel="noopener noreferrer" className="tea-button-secondary" style={{ gap: '0.5rem' }}>
+              <BsGithub /> {t('tea.githubJoao')}
+            </a>
+          </div>
+        </div>
 
-export default App
+      </div>
+
+      <p style={{ textAlign: 'center', marginTop: '3rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+        {t('tea.footer')}
+      </p>
+
+    </div>
+  );
+};
+
+export default Tea;
