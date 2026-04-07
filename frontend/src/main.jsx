@@ -8,7 +8,7 @@ import './i18n/config';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter basename="/TEA">
+    <BrowserRouter>
       <App />
     </BrowserRouter>
   </React.StrictMode>,
