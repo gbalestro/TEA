@@ -30,6 +30,28 @@ const Reports = () => {
 
   const [startDate, setStartDate] = useState(formatDate(firstDay));
   const [endDate, setEndDate] = useState(formatDate(today));
+
+  const formatDateTime = (isoString) => {
+    if (!isoString) return '-';
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return isoString; // Fallback
+    return d.toLocaleString([], { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric',
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+  };
+
+  const toLocalISOString = (isoString) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return '';
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - (offset * 60 * 1000));
+    return localDate.toISOString().slice(0, 16);
+  };
   const [loading, setLoading] = useState(false);
   
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -104,8 +126,8 @@ const Reports = () => {
       id: log.id,
       person: log.person_id,
       location: log.location_id,
-      clock_in: log.clock_in,
-      clock_out: log.clock_out
+      clock_in: toLocalISOString(log.clock_in),
+      clock_out: toLocalISOString(log.clock_out)
     });
     setShowEditLogModal(true);
   };
@@ -174,8 +196,8 @@ const Reports = () => {
       if (!reportData.raw_logs || reportData.raw_logs.length === 0) return alert("Não há dados.");
       const tableColumn = ["Data Entrada", "Data Saida", "Colaborador", "Local"];
       const tableRows = reportData.raw_logs.map(log => [
-        log.clock_in.replace('T', ' '), 
-        log.clock_out ? log.clock_out.replace('T', ' ') : 'Ativo', 
+        formatDateTime(log.clock_in), 
+        log.clock_out ? formatDateTime(log.clock_out) : 'Ativo', 
         log.person_name, 
         log.location_name
       ]);
@@ -197,8 +219,8 @@ const Reports = () => {
     } else {
       if (!reportData.raw_logs || reportData.raw_logs.length === 0) return alert("Não há dados.");
       exportData = reportData.raw_logs.map(log => ({
-        "Entrada": log.clock_in.replace('T', ' '),
-        "Saída": log.clock_out ? log.clock_out.replace('T', ' ') : 'Ativo',
+        "Entrada": formatDateTime(log.clock_in),
+        "Saída": log.clock_out ? formatDateTime(log.clock_out) : 'Ativo',
         "Colaborador": log.person_name,
         "Local": log.location_name
       }));
@@ -438,10 +460,10 @@ const Reports = () => {
               {reportData.raw_logs && reportData.raw_logs.length > 0 ? reportData.raw_logs.map((log) => (
                 <tr key={log.id}>
                   <td className="px-4 py-3 fw-bold text-secondary">
-                    {log.clock_in.replace('T', ' ')}
+                    {formatDateTime(log.clock_in)}
                   </td>
                   <td className="py-3 fw-bold text-secondary">
-                    {log.clock_out ? log.clock_out.replace('T', ' ') : <span className="text-primary italic">{t('reports.working')}</span>}
+                    {log.clock_out ? formatDateTime(log.clock_out) : <span className="text-primary italic">{t('reports.working')}</span>}
                   </td>
                   <td className="py-3 fw-600">{log.person_name}</td>
                   <td className="py-3 text-muted">{log.location_name}</td>
