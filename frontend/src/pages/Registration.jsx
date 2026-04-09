@@ -44,14 +44,16 @@ const Registration = () => {
       
       const formattedWorkers = activeLogs.map(log => {
         const d = new Date(log.clock_in);
+        const timeStr = d.toLocaleString([], { hour: '2-digit', minute: '2-digit' });
+        
         return {
           id: log.id,
           person_id: log.person_details.id,
           nome: log.person_details.name,
           local: log.location_details.name,
           foto: log.person_details.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(log.person_details.name)}&background=6366f1&color=fff`,
-          inicio: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          tempo: `🏠 ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` 
+          inicio: timeStr,
+          tempo: `🏠 ${timeStr}` 
         };
       });
       setActiveWorkers(formattedWorkers);

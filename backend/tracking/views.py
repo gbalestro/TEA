@@ -133,8 +133,8 @@ class TimeLogViewSet(viewsets.ModelViewSet):
                 'person_name': log.person.name,
                 'location_id': log.location_id,
                 'location_name': log.location.name,
-                'clock_in': log.clock_in.isoformat(),
-                'clock_out': log.clock_out.isoformat() if log.clock_out else None,
+                'clock_in': log.clock_in.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                'clock_out': log.clock_out.strftime("%Y-%m-%dT%H:%M:%SZ") if log.clock_out else None,
             })
 
         return Response({
