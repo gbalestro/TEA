@@ -1,21 +1,77 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import User
 from django.utils import timezone
-from .models import Person, Location, TimeLog
-from .serializers import PersonSerializer, LocationSerializer, TimeLogSerializer
+from .models import Person, Location, TimeLog, UserProfile
+from .serializers import PersonSerializer, LocationSerializer, TimeLogSerializer, UserSerializer
+
+class IsAdminRole(IsAuthenticated):
+    def has_permission(self, request, view):
+        return super().has_permission(request, view) and hasattr(request.user, 'profile') and request.user.profile.role == 'admin'
+
+class CustomObtainAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        
+        role = 'staff'
+        if hasattr(user, 'profile'):
+            role = user.profile.role
+            
+        return Response({
+            'token': token.key,
+            'user_id': user.pk,
+            'username': user.username,
+            'role': role
+        })
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    
+    def get_permissions(self):
+        if self.action in ['create', 'destroy', 'update', 'partial_update']:
+            return [IsAdminRole()]
+        return [IsAuthenticated()]
+
+    def get_queryset(self):
+        if hasattr(self.request.user, 'profile') and self.request.user.profile.role == 'admin':
+            return User.objects.all()
+        return User.objects.filter(id=self.request.user.id)
 
 class PersonViewSet(viewsets.ModelViewSet):
     queryset = Person.objects.all()
     serializer_class = PersonSerializer
+    
+    def get_permissions(self):
+        if self.action == 'list':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
 class LocationViewSet(viewsets.ModelViewSet):
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
 
+    def get_permissions(self):
+        if self.action == 'list':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
 class TimeLogViewSet(viewsets.ModelViewSet):
     queryset = TimeLog.objects.all()
     serializer_class = TimeLogSerializer
+
+    def get_permissions(self):
+        # Allow anyone to clock in/out if they know the person/location ID (kiosk mode)
+        if self.action in ['clock_in_bulk', 'clock_out', 'clock_out_all', 'list']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     @action(detail=False, methods=['post'])
     def clock_in_bulk(self, request):
