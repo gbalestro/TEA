@@ -10,7 +10,8 @@
     "darkMode": "Dark Mode",
     "lightMode": "Light Mode",
     "adminUser": "Admin User",
-    "viewProfile": "View Profile"
+    "viewProfile": "View Profile",
+    "users": "Users"
   },
   "dashboard": {
     "title": "Control Dashboard",
@@ -127,5 +128,29 @@
     "linkedinJoao": "Joao's LinkedIn",
     "githubJoao": "Joao's GitHub",
     "footer": "© 2026 TEA Project • Built with ☕ Coffee & 🫖 Tea"
+  },
+  "users": {
+    "title": "Access Management",
+    "subtitle": "Control who can access the TEA System",
+    "addNew": "New User",
+    "username": "Username",
+    "emailPlaceholder": "example@email.com",
+    "role": "Role",
+    "actions": "Actions",
+    "modalAddTitle": "New User",
+    "modalEditTitle": "Edit Access",
+    "emailLabel": "E-MAIL",
+    "passwordLabel": "PASSWORD",
+    "passwordPlaceholder": "Set password",
+    "keepPasswordPlaceholder": "Leave blank to keep current",
+    "cancel": "Cancel",
+    "save": "Save Access",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this access?",
+    "errorSave": "Error saving user. Check if the name already exists.",
+    "noEmail": "No email",
+    "staffRole": "Staff (Tracking Only)",
+    "managerRole": "Manager (Operational)",
+    "adminRole": "Admin (Board)"
   }
 }

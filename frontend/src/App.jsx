@@ -165,7 +165,7 @@ function App() {
           {isAdmin && (
             <NavLink to="/users" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
               <ShieldCheck className="sidebar-link-icon" />
-              <span>Usuários</span>
+              <span>{t('sidebar.users')}</span>
             </NavLink>
           )}
 

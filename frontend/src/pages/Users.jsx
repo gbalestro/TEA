@@ -87,12 +87,12 @@ const Users = () => {
             fetchUsers();
         } catch (error) {
             console.error("Error saving user:", error);
-            alert("Erro ao salvar usuário. Verifique se o nome já existe.");
+            alert(t('users.errorSave'));
         }
     };
 
     const handleDelete = async () => {
-        if (window.confirm("Deseja realmente excluir este acesso?")) {
+        if (window.confirm(t('users.confirmDelete'))) {
             try {
                 await axios.delete(`${API_URL}${currentId}/`);
                 handleClose();
@@ -103,16 +103,24 @@ const Users = () => {
         }
     };
 
+    const getRoleLabel = (role) => {
+        switch(role) {
+            case 'admin': return t('users.adminRole');
+            case 'manager': return t('users.managerRole');
+            default: return t('users.staffRole');
+        }
+    };
+
     return (
         <div className="users-container px-4 py-3">
             {/* 🚀 HEADER */}
             <div className="card-premium p-3 mb-4 d-flex justify-content-between align-items-center bg-light border shadow-sm rounded-3 people-header">
                 <div>
-                    <h2 className="fw-bold mb-0" style={{ fontSize: '1.5rem', color: 'var(--text-h)' }}>Gestão de Acessos</h2>
-                    <p className="text-muted small mb-0">Controle quem pode acessar o TEA System</p>
+                    <h2 className="fw-bold mb-0" style={{ fontSize: '1.5rem', color: 'var(--text-h)' }}>{t('users.title')}</h2>
+                    <p className="text-muted small mb-0">{t('users.subtitle')}</p>
                 </div>
                 <button className="tea-button-primary d-flex align-items-center gap-2" onClick={handleShowAdd} style={{ padding: '8px 20px', borderRadius: '8px' }}>
-                    <PersonLock size={20} /> Novo Usuário
+                    <PersonLock size={20} /> {t('users.addNew')}
                 </button>
             </div>
 
@@ -121,9 +129,9 @@ const Users = () => {
                 <Table hover responsive className="mb-0 align-middle">
                     <thead className="bg-light d-none d-md-table-header-group">
                         <tr style={{ borderBottom: '2px solid #eee' }}>
-                            <th className="px-4 py-3 text-muted">Usuário</th>
-                            <th className="py-3 text-muted">Cargo</th>
-                            <th className="py-3 text-muted text-center">Ações</th>
+                            <th className="px-4 py-3 text-muted">{t('users.username')}</th>
+                            <th className="py-3 text-muted">{t('users.role')}</th>
+                            <th className="py-3 text-muted text-center">{t('users.actions')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -131,7 +139,7 @@ const Users = () => {
                             <tr key={u.id} className="responsive-table-row">
                                 <td className="px-md-4 py-3">
                                     <div className="fw-bold">{u.username}</div>
-                                    <div className="text-muted small">{u.email || 'Sem e-mail'}</div>
+                                    <div className="text-muted small">{u.email || t('users.noEmail')}</div>
                                 </td>
                                 <td className="py-3">
                                     <span className={`badge px-3 py-2 rounded-pill ${
@@ -139,7 +147,7 @@ const Users = () => {
                                         u.role === 'manager' ? 'bg-success bg-opacity-10 text-success' : 
                                         'bg-secondary bg-opacity-10 text-secondary'
                                     }`} style={{ fontWeight: '600' }}>
-                                        {u.role?.toUpperCase()}
+                                        {getRoleLabel(u.role)}
                                     </span>
                                 </td>
                                 <td className="py-3 text-md-center">
@@ -156,35 +164,35 @@ const Users = () => {
             {/* ➕ MODAL */}
             <Modal show={showModal} onHide={handleClose} centered>
                 <Modal.Header closeButton className="border-0">
-                    <Modal.Title className="fw-bold">{isEditMode ? 'Editar Acesso' : 'Novo Usuário'}</Modal.Title>
+                    <Modal.Title className="fw-bold">{isEditMode ? t('users.modalEditTitle') : t('users.modalAddTitle')}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="p-4">
                     <Form>
                         <Form.Group className="mb-3">
-                            <Form.Label className="small fw-bold text-muted">USERNAME</Form.Label>
+                            <Form.Label className="small fw-bold text-muted">{t('users.username')}</Form.Label>
                             <Form.Control type="text" name="username" value={formData.username} onChange={handleInputChange} className="p-2 bg-light border-0" />
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label className="small fw-bold text-muted">E-MAIL</Form.Label>
+                            <Form.Label className="small fw-bold text-muted">{t('users.emailLabel')}</Form.Label>
                             <Form.Control 
                                 type="email" 
                                 name="email" 
                                 value={formData.email} 
                                 onChange={handleInputChange} 
                                 className="p-2 bg-light border-0" 
-                                placeholder="exemplo@email.com"
+                                placeholder={t('users.emailPlaceholder')}
                             />
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label className="small fw-bold text-muted">CARGO</Form.Label>
+                            <Form.Label className="small fw-bold text-muted">{t('users.role')}</Form.Label>
                             <Form.Select name="role" value={formData.role} onChange={handleInputChange} className="p-2 bg-light border-0">
-                                <option value="staff">Staff (Apenas Ponto)</option>
-                                <option value="manager">Manager (Operacional)</option>
-                                <option value="admin">Admin (Diretoria)</option>
+                                <option value="staff">{t('users.staffRole')}</option>
+                                <option value="manager">{t('users.managerRole')}</option>
+                                <option value="admin">{t('users.adminRole')}</option>
                             </Form.Select>
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label className="small fw-bold text-muted">PASSWORD</Form.Label>
+                            <Form.Label className="small fw-bold text-muted">{t('users.passwordLabel')}</Form.Label>
                             <div className="input-group">
                                 <span className="input-group-text bg-light border-0"><KeyFill /></span>
                                 <Form.Control 
@@ -193,7 +201,7 @@ const Users = () => {
                                     value={formData.password} 
                                     onChange={handleInputChange} 
                                     className="p-2 bg-light border-0" 
-                                    placeholder={isEditMode ? "Deixe em branco para manter" : "Defina a senha"}
+                                    placeholder={isEditMode ? t('users.keepPasswordPlaceholder') : t('users.passwordPlaceholder')}
                                 />
                             </div>
                         </Form.Group>
@@ -202,12 +210,12 @@ const Users = () => {
                 <Modal.Footer className="border-0 d-flex justify-content-center gap-2 pb-4">
                     {isEditMode && (
                         <Button variant="outline-danger" onClick={handleDelete} className="me-auto fw-bold">
-                            <Trash size={18} /> Excluir
+                            <Trash size={18} /> {t('users.delete')}
                         </Button>
                     )}
-                    <Button variant="light" onClick={handleClose} className="fw-bold px-4">Cancelar</Button>
+                    <Button variant="light" onClick={handleClose} className="fw-bold px-4">{t('users.cancel')}</Button>
                     <button className="tea-button-primary px-4 py-2" onClick={handleSubmit}>
-                        Salvar Acesso
+                        {t('users.save')}
                     </button>
                 </Modal.Footer>
             </Modal>

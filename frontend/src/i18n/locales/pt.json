@@ -10,7 +10,8 @@
     "darkMode": "Modo Escuro",
     "lightMode": "Modo Claro",
     "adminUser": "Usuário Admin",
-    "viewProfile": "Ver Perfil"
+    "viewProfile": "Ver Perfil",
+    "users": "Usuários"
   },
   "dashboard": {
     "title": "Dashboard de Controle",
@@ -127,5 +128,29 @@
     "linkedinJoao": "LinkedIn do João",
     "githubJoao": "GitHub do João",
     "footer": "© 2026 Projeto TEA • Feito com 🫖 Chá & Café ☕"
+  },
+  "users": {
+    "title": "Gestão de Acessos",
+    "subtitle": "Controle quem pode acessar o TEA System",
+    "addNew": "Novo Usuário",
+    "username": "Usuário",
+    "emailPlaceholder": "exemplo@email.com",
+    "role": "Cargo",
+    "actions": "Ações",
+    "modalAddTitle": "Novo Usuário",
+    "modalEditTitle": "Editar Acesso",
+    "emailLabel": "E-MAIL",
+    "passwordLabel": "PASSWORD",
+    "passwordPlaceholder": "Defina a senha",
+    "keepPasswordPlaceholder": "Deixe em branco para manter",
+    "cancel": "Cancelar",
+    "save": "Salvar Acesso",
+    "delete": "Excluir",
+    "confirmDelete": "Deseja realmente excluir este acesso?",
+    "errorSave": "Erro ao salvar usuário. Verifique se o nome já existe.",
+    "noEmail": "Sem e-mail",
+    "staffRole": "Staff (Apenas Ponto)",
+    "managerRole": "Manager (Operacional)",
+    "adminRole": "Admin (Diretoria)"
   }
 }
