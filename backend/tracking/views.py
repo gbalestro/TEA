@@ -109,7 +109,9 @@ class TimeLogViewSet(viewsets.ModelViewSet):
             hours = total_duration / 3600.0
             total_hours += hours
             
-            locais_count = p_logs.values('location').distinct().count()
+            # Get unique location names for this person in this period
+            venue_names = sorted(list(set(p_logs.values_list('location__name', flat=True))))
+            locais_str = ", ".join(venue_names)
 
             photo_url = request.build_absolute_uri(p.photo.url) if p.photo else None
 
@@ -119,7 +121,7 @@ class TimeLogViewSet(viewsets.ModelViewSet):
                 'posicao': p.position or 'Colaborador',
                 'foto': photo_url,
                 'horas': hours,
-                'locais': locais_count
+                'locais': locais_str
             })
 
         # Sort by total hours descending

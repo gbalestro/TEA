@@ -10,12 +10,12 @@
 
 /* Sidebar Styling */
 .sidebar {
-  width: 260px !important;
-  min-width: 260px !important;
-  flex-shrink: 0 !important;
-  background-color: var(--sidebar-bg) !important;
-  color: var(--sidebar-text) !important;
-  display: flex !important;
+  width: 260px;
+  min-width: 260px;
+  flex-shrink: 0;
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  display: flex;
   flex-direction: column;
   transition: var(--transition);
   border-right: 1px solid var(--border);
@@ -27,11 +27,25 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 1.5rem;
   font-family: var(--font-heading);
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -1px;
+}
+
+.sidebar-logo-text {
+  flex-grow: 1;
+}
+
+.sidebar-close-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
 }
 
 .sidebar-logo-icon {
@@ -105,9 +119,26 @@
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  padding: 0 2rem;
+  padding: 0 1.5rem;
   box-shadow: var(--shadow-sm);
   z-index: 5;
+}
+
+.mobile-menu-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  margin-right: 1rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: var(--transition);
+}
+
+.mobile-menu-toggle:hover {
+  background-color: var(--primary-light);
+  color: var(--primary);
 }
 
 .header-breadcrumb {
@@ -161,7 +192,6 @@
   justify-content: center;
   padding: 0.75rem 1.5rem;
   background-color: #6366f1 !important;
-  /* Temporarily hardcoding to bypass any variable issues */
   color: #ffffff !important;
   font-weight: 600 !important;
   border-radius: 12px;
@@ -220,10 +250,176 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  /* Fallback for browsers that don't support text-fill-color */
 }
 
 .page-hero-subtitle {
   font-size: 1.25rem;
   color: var(--text-muted);
+}
+
+/* RESPONSIVE MEDIA QUERIES */
+
+/* Sidebar Overlay */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 90;
+  transition: var(--transition);
+}
+
+@media (max-width: 991.98px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    bottom: 0;
+    z-index: 1000;
+  }
+
+  .sidebar.open {
+    left: 0;
+    box-shadow: 20px 0 50px rgba(0,0,0,0.1);
+  }
+
+  .sidebar-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  .header {
+    padding: 0 1rem;
+  }
+
+  .page-container {
+    padding: 1.5rem 1rem;
+  }
+
+  .card-premium {
+    padding: 1.25rem;
+  }
+
+  .page-hero-title {
+    font-size: 2.25rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .header-breadcrumb {
+    display: none; /* Simplifies mobile header */
+  }
+  
+  .header::after {
+    content: "TEA System";
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--primary);
+    margin-left: auto;
+  }
+  
+  .tea-button-primary, .tea-button-secondary {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Specific Header Stack for People Mgmt */
+  .people-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1.5rem !important;
+  }
+
+  /* Responsive Table-to-Card Transformation */
+  .responsive-table-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    padding: 1.25rem;
+    border-bottom: 2px solid #f8f9fa !important;
+    gap: 0;
+  }
+
+  .responsive-table-row td {
+    border: none !important;
+    padding: 0 !important;
+    display: block;
+  }
+
+  .cell-collaborator {
+    width: 100% !important;
+    margin-bottom: 1rem;
+  }
+
+  /* Wrap collaborator and locations together on mobile */
+  .cell-locations {
+    width: 100% !important;
+    margin-bottom: 1rem;
+    padding-left: 64px !important; /* Align under the name, after avatar */
+    margin-top: -0.5rem;
+  }
+
+  .cell-locations::before {
+    content: "Recent:";
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .cell-hours {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 0.75rem 0 !important;
+    border-top: 1px solid #f0f0f0 !important;
+    margin-bottom: 1rem;
+  }
+
+  .cell-hours::before {
+    content: "Total Hours Period";
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .hours-value {
+    font-size: 1.2rem !important;
+  }
+
+  .cell-actions {
+    width: 100% !important;
+    display: block !important;
+  }
+
+  .cell-actions .btn {
+    width: 100% !important;
+    padding: 0.6rem !important;
+    background-color: #f8f9fa !important;
+    border-radius: 8px !important;
+  }
+}
+
+/* Responsive border utilities */
+@media (min-width: 992px) {
+  .border-lg-end {
+    border-right: 1px solid var(--border) !important;
+  }
+}
+
+/* Fix for horizontal scroll and layout shifts on mobile */
+body {
+  overflow-x: hidden;
+  width: 100%;
 }

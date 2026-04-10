@@ -153,7 +153,7 @@ const Registration = () => {
         </div>
         <Row className="g-3">
           {activeWorkers.map(worker => (
-            <Col key={worker.id} md={4} xl={3}>
+            <Col key={worker.id} xs={12} sm={6} md={4} xl={3}>
               <div className="card-premium p-3 border-0 shadow-sm bg-white rounded-3 h-100 d-flex flex-column justify-content-between">
                 <div className="d-flex align-items-start gap-3 mb-3">
                   <img src={worker.foto} alt={worker.nome} className="rounded-circle" style={{ width: '45px', height: '45px', objectFit: 'cover' }} />
@@ -189,7 +189,7 @@ const Registration = () => {
         <div className="card-premium p-4 border-0 shadow-sm bg-white rounded-4">
           <Row>
             {/* WHO: SELECT PEOPLE */}
-            <Col lg={8} className="border-end pe-lg-4">
+            <Col lg={8} className="border-lg-end pe-lg-4">
               <p className="fw-bold small text-muted mb-4 uppercase">{t('registration.selectPeople')}</p>
               
               {availablePeople.length > 0 ? (

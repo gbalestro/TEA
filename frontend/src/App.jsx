@@ -11,7 +11,9 @@ import {
   PersonCircle,
   InfoCircle,
   MoonFill,
-  SunFill
+  SunFill,
+  List,
+  X
 } from 'react-bootstrap-icons';
 import './App.css';
 
@@ -26,6 +28,12 @@ function App() {
   const { t, i18n } = useTranslation();
   const location = useLocation();
   const [theme, setTheme] = useState(localStorage.getItem('tea_theme') || 'light');
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+
+  // Close sidebar when route changes
+  useEffect(() => {
+    setShowMobileSidebar(false);
+  }, [location]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -56,14 +64,22 @@ function App() {
   const { title } = getPageConfig(location.pathname);
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${showMobileSidebar ? 'mobile-sidebar-open' : ''}`}>
+      {/* OVERLAY FOR MOBILE */}
+      {showMobileSidebar && (
+        <div className="sidebar-overlay" onClick={() => setShowMobileSidebar(false)}></div>
+      )}
+
       {/* SIDEBAR */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${showMobileSidebar ? 'open' : ''}`}>
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">
             <CupHot />
           </div>
-          TEA
+          <span className="sidebar-logo-text">TEA</span>
+          <button className="sidebar-close-btn" onClick={() => setShowMobileSidebar(false)}>
+            <X size={24} />
+          </button>
         </div>
 
         <nav className="sidebar-nav">
@@ -146,6 +162,9 @@ function App() {
       {/* MAIN CONTENT AREA */}
       <main className="main-content">
         <header className="header">
+          <button className="mobile-menu-toggle" onClick={() => setShowMobileSidebar(true)}>
+            <List size={24} />
+          </button>
           <div className="header-breadcrumb">
             <span className="header-parent">TEA System</span>
             <span className="header-separator">/</span>

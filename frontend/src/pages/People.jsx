@@ -26,8 +26,24 @@ const People = () => {
     name: '',
     position: '',
     email: '',
-    phone: ''
+    phone: '',
+    photo: null
   });
+  
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const fileInputRef = React.useRef(null);
+  
+  const roles = [
+    "Head Coach",
+    "Senior Coach",
+    "Rec Coach",
+    "Assistant Coach",
+    "Admin",
+    "Other"
+  ];
+  
+  const [selectedRole, setSelectedRole] = useState('');
+  const [otherRole, setOtherRole] = useState('');
 
   useEffect(() => {
     fetchPeople();
@@ -63,13 +79,19 @@ const People = () => {
     setShowModal(false);
     setIsEditMode(false);
     setCurrentId(null);
-    setFormData({ name: '', position: '', email: '', phone: '' });
+    setFormData({ name: '', position: '', email: '', phone: '', photo: null });
+    setPhotoPreview(null);
+    setSelectedRole('');
+    setOtherRole('');
   };
 
   const handleShowAdd = () => {
     setIsEditMode(false);
     setCurrentId(null);
-    setFormData({ name: '', position: '', email: '', phone: '' });
+    setFormData({ name: '', position: '', email: '', phone: '', photo: null });
+    setPhotoPreview(null);
+    setSelectedRole('');
+    setOtherRole('');
     setShowModal(true);
   };
 
@@ -80,24 +102,79 @@ const People = () => {
       name: person.name,
       position: person.position || '',
       email: person.email || '',
-      phone: person.phone || ''
+      phone: person.phone || '',
+      photo: null // we don't re-upload the same file unless changed
     });
+    
+    setPhotoPreview(person.photo);
+    
+    if (roles.includes(person.position)) {
+      setSelectedRole(person.position);
+      setOtherRole('');
+    } else {
+      setSelectedRole('Other');
+      setOtherRole(person.position || '');
+    }
+    
     setShowModal(true);
   };
 
   const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    
+    if (name === 'selectedRole') {
+      setSelectedRole(value);
+      e.target.blur(); // Force close the native picker on mobile
+      if (value !== 'Other') {
+        setFormData(prev => ({ ...prev, position: value }));
+      } else {
+        setFormData(prev => ({ ...prev, position: otherRole }));
+      }
+    } else if (name === 'otherRole') {
+      setOtherRole(value);
+      setFormData(prev => ({ ...prev, position: value }));
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({ ...formData, photo: file });
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async () => {
     try {
+      // Use FormData for multipart upload (support files)
+      const data = new FormData();
+      data.append('name', formData.name);
+      data.append('position', formData.position || '');
+      
+      const emailVal = formData.email?.trim() === '' ? null : formData.email;
+      const phoneVal = formData.phone?.trim() === '' ? null : formData.phone;
+      
+      if (emailVal) data.append('email', emailVal);
+      if (phoneVal) data.append('phone', phoneVal);
+      if (formData.photo) data.append('photo', formData.photo);
+
       if (isEditMode) {
-        await axios.put(`${API_URL}${currentId}/`, formData);
+        await axios.put(`${API_URL}${currentId}/`, data, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
       } else {
-        await axios.post(API_URL, formData);
+        await axios.post(API_URL, data, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
       }
       handleClose();
       fetchPeople();
@@ -124,7 +201,7 @@ const People = () => {
     <div className="pessoas-container px-4 py-3">
       
       {/* 🚀 HEADER SECTION */}
-      <div className="card-premium p-3 mb-4 d-flex justify-content-between align-items-center bg-light border shadow-sm rounded-3">
+      <div className="card-premium p-3 mb-4 d-flex justify-content-between align-items-center bg-light border shadow-sm rounded-3 people-header">
         <h2 className="fw-bold mb-0" style={{ fontSize: '1.5rem', color: 'var(--text-h)' }}>{t('people.title')}</h2>
         <button className="tea-button-primary d-flex align-items-center gap-2" onClick={handleShowAdd} style={{ padding: '8px 20px', borderRadius: '8px' }}>
           <PersonAdd size={20} /> {t('people.addNew')}
@@ -134,7 +211,7 @@ const People = () => {
       {/* 📊 TABLE SECTION */}
       <div className="card-premium bg-white border shadow-sm rounded-3 overflow-hidden">
         <Table hover responsive className="mb-0 align-middle">
-          <thead className="bg-light">
+          <thead className="bg-light d-none d-md-table-header-group">
             <tr style={{ borderBottom: '2px solid #eee' }}>
               <th className="px-4 py-3 text-muted" style={{ width: '25%', fontWeight: '600' }}>{t('people.collaborator')}</th>
               <th className="py-3 text-muted" style={{ width: '35%', fontWeight: '600' }}>{t('people.recentLocations')}</th>
@@ -144,8 +221,8 @@ const People = () => {
           </thead>
           <tbody>
             {people.length > 0 ? people.map((person) => (
-              <tr key={person.id} style={{ borderBottom: '1px solid #f5f5f5' }}>
-                <td className="px-4 py-3">
+              <tr key={person.id} className="responsive-table-row">
+                <td className="px-md-4 py-3 cell-collaborator">
                   <div className="d-flex align-items-center gap-3">
                     <img 
                       src={person.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=6366f1&color=fff`} 
@@ -154,30 +231,27 @@ const People = () => {
                       style={{ width: '48px', height: '48px', objectFit: 'cover' }} 
                     />
                     <div>
-                      <div className="fw-bold" style={{ color: 'var(--text-h)', fontSize: '1.05rem' }}>{person.name}</div>
+                      <div className="fw-bold person-name" style={{ color: 'var(--text-h)', fontSize: '1.05rem' }}>{person.name}</div>
                       <div className="text-muted small">{person.position}</div>
                     </div>
                   </div>
                 </td>
-                <td className="py-3">
+                <td className="py-3 cell-locations">
                   <div className="d-flex flex-wrap gap-2">
-                    <span className="badge bg-light text-muted border px-2 py-1" style={{ fontWeight: '500', fontSize: '0.85rem', borderRadius: '4px' }}>
-                      {person.total_locations || 0} {t('reports.locationsWorked')}
+                    <span className="badge bg-light text-muted border px-2 py-1 text-wrap text-start" style={{ fontWeight: '500', fontSize: '0.75rem', borderRadius: '4px', maxWidth: '250px' }}>
+                      {person.total_locations || '-'}
                     </span>
                   </div>
                 </td>
-                <td className="py-3 text-center">
-                  <div style={{ fontWeight: '700', fontSize: '1.4rem', color: person.total_hours > 0 ? '#10b981' : '#ccc' }}>
+                <td className="py-3 text-md-center cell-hours">
+                  <div className="hours-value" style={{ fontWeight: '700', fontSize: '1.4rem', color: person.total_hours > 0 ? '#10b981' : '#ccc' }}>
                     {(person.total_hours || 0).toFixed(1)}h
                   </div>
                 </td>
-                <td className="py-3 text-center">
-                    <PencilSquare 
-                      className="text-secondary cursor-pointer hover-text-primary" 
-                      size={20} 
-                      style={{ cursor: 'pointer', transition: 'color 0.2s' }} 
-                      onClick={() => handleShowEdit(person)} 
-                    />
+                <td className="py-3 text-md-center cell-actions">
+                    <Button variant="light" size="sm" className="border shadow-sm p-2 d-flex align-items-center justify-content-center" onClick={() => handleShowEdit(person)}>
+                      <PencilSquare className="text-primary" size={18} />
+                    </Button>
                 </td>
               </tr>
             )) : (
@@ -201,55 +275,85 @@ const People = () => {
         <Modal.Body className="p-4">
           <Form>
             <Row>
-              <Col md={12} className="text-center mb-4">
-                <div className="mx-auto bg-light rounded-circle d-flex align-items-center justify-content-center shadow-inner" style={{ width: '100px', height: '100px', cursor: 'pointer', border: '2px dashed var(--border)' }}>
-                  <div className="text-muted small">
-                    <Camera size={24} /><br />Foto
+            <Col md={12} className="text-center mb-4">
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handlePhotoChange} 
+                  accept="image/*" 
+                  style={{ display: 'none' }} 
+                />
+                <div 
+                  className="mx-auto bg-light rounded-circle d-flex align-items-center justify-content-center shadow-sm overflow-hidden" 
+                  style={{ width: '100px', height: '100px', cursor: 'pointer', border: '2px dashed var(--border)', position: 'relative' }}
+                  onClick={() => fileInputRef.current.click()}
+                >
+                  {photoPreview ? (
+                    <img src={photoPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div className="text-muted small">
+                      <Camera size={24} /><br />Foto
+                    </div>
+                  )}
+                  <div className="position-absolute bottom-0 start-0 end-0 bg-dark bg-opacity-25 py-1 text-white x-small" style={{ fontSize: '0.6rem' }}>
+                    EDIT
                   </div>
                 </div>
               </Col>
               
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label className="small fw-bold">{t('people.fullName')}</Form.Label>
-                  <Form.Control type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="Ex: Carlos Pinto" className="p-2" />
+                  <Form.Label className="small fw-bold">{t('people.fullName')} *</Form.Label>
+                  <Form.Control type="text" name="name" value={formData.name} onChange={handleInputChange} className="p-2" />
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label className="small fw-bold">{t('people.position')}</Form.Label>
-                  <Form.Control type="text" name="position" value={formData.position} onChange={handleInputChange} placeholder="Ex: Engenheiro Civil" className="p-2" />
+                  <Form.Label className="small fw-bold">{t('people.position')} *</Form.Label>
+                  <Form.Select name="selectedRole" value={selectedRole} onChange={handleInputChange} className="p-2">
+                    <option value="">Select Role</option>
+                    {roles.map(r => <option key={r} value={r}>{r}</option>)}
+                  </Form.Select>
                 </Form.Group>
+                
+                {selectedRole === 'Other' && (
+                  <Form.Group className="mb-3">
+                    <Form.Control 
+                      type="text" 
+                      name="otherRole" 
+                      value={otherRole} 
+                      onChange={handleInputChange} 
+                      placeholder="Enter custom role..." 
+                      className="p-2" 
+                    />
+                  </Form.Group>
+                )}
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
                   <Form.Label className="small fw-bold">{t('people.email')}</Form.Label>
-                  <Form.Control type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="carlos.pinto@tea.com" className="p-2" />
+                  <Form.Control type="email" name="email" value={formData.email} onChange={handleInputChange} className="p-2" />
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
                   <Form.Label className="small fw-bold">{t('people.phone')}</Form.Label>
-                  <Form.Control type="text" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="(11) 98888-1234" className="p-2" />
+                  <Form.Control type="text" name="phone" value={formData.phone} onChange={handleInputChange} className="p-2" />
                 </Form.Group>
               </Col>
             </Row>
           </Form>
         </Modal.Body>
-        <Modal.Footer className="border-0 pt-0 pb-4 px-4 d-flex justify-content-between">
-          <div>
-             {isEditMode && (
-               <Button variant="outline-danger" onClick={handleDelete} className="fw-bold px-3 d-flex align-items-center gap-2">
-                 <Trash size={16} /> {t('people.delete')}
-               </Button>
-             )}
-          </div>
-          <div>
-            <Button variant="light" onClick={handleClose} className="fw-bold px-4 me-2">{t('people.cancel')}</Button>
-            <button className="tea-button-primary px-4 py-2" onClick={handleSubmit} style={{ borderRadius: '8px' }}>
-              {isEditMode ? t('people.update') : t('people.save')}
-            </button>
-          </div>
+        <Modal.Footer className="border-0 pt-0 pb-4 px-4 d-flex justify-content-center gap-2">
+          {isEditMode && (
+            <Button variant="outline-danger" onClick={handleDelete} className="fw-bold px-3 d-flex align-items-center gap-2 me-auto">
+              <Trash size={16} /> {t('people.delete')}
+            </Button>
+          )}
+          <Button variant="light" onClick={handleClose} className="fw-bold px-4">{t('people.cancel')}</Button>
+          <button className="tea-button-primary px-4 py-2" onClick={handleSubmit} style={{ borderRadius: '8px' }}>
+            {isEditMode ? t('people.update') : t('people.save')}
+          </button>
         </Modal.Footer>
       </Modal>
 

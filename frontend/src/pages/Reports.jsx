@@ -188,8 +188,8 @@ const Reports = () => {
     
     if (viewMode === 'agrupada') {
       if (!reportData.breakdown || reportData.breakdown.length === 0) return alert("Não há dados.");
-      const tableColumn = ["Colaborador", "Posicao", "Qtd Locais", "Total Horas"];
-      const tableRows = reportData.breakdown.map(row => [row.nome, row.posicao, row.locais.toString(), row.horas.toFixed(1) + 'h']);
+      const tableColumn = ["Colaborador", "Posicao", "Locais Trabalhados", "Total Horas"];
+      const tableRows = reportData.breakdown.map(row => [row.nome, row.posicao, row.locais, row.horas.toFixed(1) + 'h']);
       autoTable(doc, { head: [tableColumn], body: tableRows, startY: yPos });
       doc.save(`relatorio_${startDate}_${endDate}.pdf`);
     } else {
@@ -213,7 +213,7 @@ const Reports = () => {
       exportData = reportData.breakdown.map(row => ({
         "Colaborador": row.nome,
         "Posição": row.posicao,
-        "Qtd Locais": row.locais,
+        "Locais Trabalhados": row.locais,
         "Total Horas": parseFloat(row.horas.toFixed(1))
       }));
     } else {
@@ -246,7 +246,7 @@ const Reports = () => {
       {/* 📅 FILTER SECTION */}
       <div className="card-premium p-4 mb-4 border shadow-sm bg-white rounded-4">
         <Row className="align-items-end g-3 mb-2">
-          <Col md={4} lg={3}>
+          <Col xs={12} md={5} lg={3}>
             <Form.Group>
               <Form.Label className="small fw-bold text-muted uppercase mb-2">{t('reports.startDate')}</Form.Label>
               <div className="input-group">
@@ -263,7 +263,7 @@ const Reports = () => {
           <Col md={1} className="d-none d-md-flex justify-content-center align-items-center mb-2">
             <ArrowRight className="text-muted" size={20} />
           </Col>
-          <Col md={4} lg={3}>
+          <Col xs={12} md={5} lg={3}>
             <Form.Group>
               <Form.Label className="small fw-bold text-muted uppercase mb-2">{t('reports.endDate')}</Form.Label>
               <div className="input-group">
@@ -277,17 +277,17 @@ const Reports = () => {
               </div>
             </Form.Group>
           </Col>
-          <Col md={3} lg={5} className="mt-4 mt-md-0 d-flex justify-content-end align-items-end gap-2">
+          <Col xs={12} lg={5} className="mt-2 mt-lg-0 d-flex flex-column flex-sm-row justify-content-lg-end align-items-stretch align-items-lg-end gap-2">
             <button 
-              className="btn btn-light px-3 py-2 border text-muted fw-bold d-flex align-items-center gap-2" 
-              style={{ borderRadius: '10px' }}
+              className="btn btn-light px-3 py-2 border text-muted fw-bold d-flex align-items-center justify-content-center gap-2" 
+              style={{ borderRadius: '10px', height: '46px' }}
               onClick={() => setShowAdvanced(!showAdvanced)}
             >
               <FilterCircle size={18} /> {t('reports.filters')} {showAdvanced ? '(-)' : '(+)'}
             </button>
             <button 
-              className="tea-button-primary px-4 py-2 w-100 w-md-auto" 
-              style={{ borderRadius: '10px' }}
+              className="tea-button-primary px-4 py-2" 
+              style={{ borderRadius: '10px', height: '46px' }}
               onClick={fetchReport}
               disabled={loading}
             >
@@ -339,7 +339,7 @@ const Reports = () => {
 
       {/* 📊 SUMMARY CARDS */}
       <Row className="mb-4 g-3">
-        <Col md={4}>
+        <Col xs={12} sm={6} md={4}>
           <div className="card-premium p-4 border shadow-sm bg-white text-center rounded-4 h-100">
             <div className="bg-primary-subtle rounded-circle d-inline-flex p-3 mb-3">
               <Clock className="text-primary fs-3" />
@@ -348,7 +348,7 @@ const Reports = () => {
             <span className="text-muted small uppercase fw-bold letter-spacing-1">{t('reports.totalHoursPeriod')}</span>
           </div>
         </Col>
-        <Col md={4}>
+        <Col xs={12} sm={6} md={4}>
           <div className="card-premium p-4 border shadow-sm bg-white text-center rounded-4 h-100">
             <div className="bg-success-subtle rounded-circle d-inline-flex p-3 mb-3">
               <People className="text-success fs-3" />
@@ -357,7 +357,7 @@ const Reports = () => {
             <span className="text-muted small uppercase fw-bold letter-spacing-1">{t('reports.collaboratorsMonitored')}</span>
           </div>
         </Col>
-        <Col md={4}>
+        <Col xs={12} md={4}>
           <div className="card-premium p-4 border shadow-sm bg-white text-center rounded-4 h-100">
             <div className="bg-warning-subtle rounded-circle d-inline-flex p-3 mb-3">
               <BarChart className="text-warning fs-3" />
@@ -425,8 +425,8 @@ const Reports = () => {
                     </div>
                   </td>
                   <td className="py-3 text-center">
-                    <Badge bg="light" text="dark" className="border px-3 py-2" style={{ borderRadius: '6px' }}>
-                      {row.locais} {t('sidebar.venues').toLowerCase()}
+                    <Badge bg="light" text="dark" className="border px-2 py-1 text-wrap" style={{ borderRadius: '6px', maxWidth: '220px', fontWeight: '500', fontSize: '0.75rem' }}>
+                      {row.locais}
                     </Badge>
                   </td>
                   <td className="py-3 text-end pe-5">
