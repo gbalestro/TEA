@@ -165,6 +165,17 @@ const Users = () => {
                             <Form.Control type="text" name="username" value={formData.username} onChange={handleInputChange} className="p-2 bg-light border-0" />
                         </Form.Group>
                         <Form.Group className="mb-3">
+                            <Form.Label className="small fw-bold text-muted">E-MAIL</Form.Label>
+                            <Form.Control 
+                                type="email" 
+                                name="email" 
+                                value={formData.email} 
+                                onChange={handleInputChange} 
+                                className="p-2 bg-light border-0" 
+                                placeholder="exemplo@email.com"
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
                             <Form.Label className="small fw-bold text-muted">CARGO</Form.Label>
                             <Form.Select name="role" value={formData.role} onChange={handleInputChange} className="p-2 bg-light border-0">
                                 <option value="staff">Staff (Apenas Ponto)</option>
