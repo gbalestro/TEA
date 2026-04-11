@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Row, Col, Form, Table, Badge, Collapse, Modal, Button } from 'react-bootstrap';
-import { 
-  Calendar3, 
-  FileEarmarkPdf, 
-  FileEarmarkExcel, 
+import {
+  Calendar3,
+  FileEarmarkPdf,
+  FileEarmarkExcel,
   ArrowRight,
   Clock,
   People,
@@ -15,7 +15,8 @@ import {
   Trash,
   CaretUpFill,
   CaretDownFill,
-  ShieldShaded
+  ShieldShaded,
+  CurrencyEuro
 } from 'react-bootstrap-icons';
 import axios from 'axios';
 import { jsPDF } from "jspdf";
@@ -41,12 +42,12 @@ const Reports = () => {
     if (!isoString) return '-';
     const d = new Date(isoString);
     if (isNaN(d.getTime())) return isoString; // Fallback
-    return d.toLocaleString([], { 
-        day: '2-digit', 
-        month: '2-digit', 
-        year: 'numeric',
-        hour: '2-digit', 
-        minute: '2-digit' 
+    return d.toLocaleString([], {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -59,7 +60,7 @@ const Reports = () => {
     return localDate.toISOString().slice(0, 16);
   };
   const [loading, setLoading] = useState(false);
-  
+
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
@@ -213,25 +214,25 @@ const Reports = () => {
   const exportToPDF = () => {
     const doc = new jsPDF();
     doc.text(`Relatorio de Horas (TEA) - ${startDate} a ${endDate}`, 14, 15);
-    
+
     let yPos = 22;
     doc.setFontSize(10);
     if (selectedPerson) {
-       const p = peopleList.find(x => x.id.toString() === selectedPerson);
-       if (p) { doc.text(`Filtro Pessoa: ${p.name}`, 14, yPos); yPos+=6; }
+      const p = peopleList.find(x => x.id.toString() === selectedPerson);
+      if (p) { doc.text(`Filtro Pessoa: ${p.name}`, 14, yPos); yPos += 6; }
     }
     if (selectedLocation) {
-       const l = locationsList.find(x => x.id.toString() === selectedLocation);
-       if (l) { doc.text(`Filtro Local: ${l.name}`, 14, yPos); yPos+=6; }
+      const l = locationsList.find(x => x.id.toString() === selectedLocation);
+      if (l) { doc.text(`Filtro Local: ${l.name}`, 14, yPos); yPos += 6; }
     }
-    
+
     if (viewMode === 'agrupada') {
       if (!reportData.breakdown || reportData.breakdown.length === 0) return alert("Não há dados.");
       const tableColumn = ["Colaborador", "Posicao", "Locais", "Horas", "Valor Hora", "Custo Total"];
       const tableRows = reportData.breakdown.map(row => [
-        row.nome, 
-        row.posicao, 
-        row.locais, 
+        row.nome,
+        row.posicao,
+        row.locais,
         row.horas.toFixed(1) + 'h',
         '€' + parseFloat(row.hourly_rate || 0).toFixed(2),
         '€' + parseFloat(row.total_cost || 0).toFixed(2)
@@ -242,9 +243,9 @@ const Reports = () => {
       if (!reportData.raw_logs || reportData.raw_logs.length === 0) return alert("Não há dados.");
       const tableColumn = ["Data Entrada", "Data Saida", "Colaborador", "Local"];
       const tableRows = reportData.raw_logs.map(log => [
-        formatDateTime(log.clock_in), 
-        log.clock_out ? formatDateTime(log.clock_out) : 'Ativo', 
-        log.person_name, 
+        formatDateTime(log.clock_in),
+        log.clock_out ? formatDateTime(log.clock_out) : 'Ativo',
+        log.person_name,
         log.location_name
       ]);
       autoTable(doc, { head: [tableColumn], body: tableRows, startY: yPos });
@@ -273,7 +274,7 @@ const Reports = () => {
         "Local": log.location_name
       }));
     }
-    
+
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, viewMode === 'agrupada' ? "Relatório" : "Extrato");
@@ -316,8 +317,8 @@ const Reports = () => {
     if (sortConfig.key !== columnKey) {
       return <CaretUpFill className="ms-1 text-muted opacity-25" style={{ fontSize: '0.7rem' }} />;
     }
-    return sortConfig.direction === 'asc' 
-      ? <CaretUpFill className="ms-1 text-primary" style={{ fontSize: '0.7rem' }} /> 
+    return sortConfig.direction === 'asc'
+      ? <CaretUpFill className="ms-1 text-primary" style={{ fontSize: '0.7rem' }} />
       : <CaretDownFill className="ms-1 text-primary" style={{ fontSize: '0.7rem' }} />;
   };
 
@@ -353,8 +354,8 @@ const Reports = () => {
     if (groupedSortConfig.key !== columnKey) {
       return <CaretUpFill className="ms-1 text-muted opacity-25" style={{ fontSize: '0.7rem' }} />;
     }
-    return groupedSortConfig.direction === 'asc' 
-      ? <CaretUpFill className="ms-1 text-primary" style={{ fontSize: '0.7rem' }} /> 
+    return groupedSortConfig.direction === 'asc'
+      ? <CaretUpFill className="ms-1 text-primary" style={{ fontSize: '0.7rem' }} />
       : <CaretDownFill className="ms-1 text-primary" style={{ fontSize: '0.7rem' }} />;
   };
 
@@ -362,7 +363,7 @@ const Reports = () => {
 
   return (
     <div className="relatorios-container px-4 py-3">
-      
+
       {/* 🚀 HEADER SECTION */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -379,9 +380,9 @@ const Reports = () => {
               <Form.Label className="small fw-bold text-muted uppercase mb-2">{t('reports.startDate')}</Form.Label>
               <div className="input-group">
                 <span className="input-group-text bg-light border-0"><Calendar3 className="text-primary" /></span>
-                <Form.Control 
-                  type="date" 
-                  value={startDate} 
+                <Form.Control
+                  type="date"
+                  value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   className="bg-light border-0 p-2"
                 />
@@ -396,9 +397,9 @@ const Reports = () => {
               <Form.Label className="small fw-bold text-muted uppercase mb-2">{t('reports.endDate')}</Form.Label>
               <div className="input-group">
                 <span className="input-group-text bg-light border-0"><Calendar3 className="text-primary" /></span>
-                <Form.Control 
-                  type="date" 
-                  value={endDate} 
+                <Form.Control
+                  type="date"
+                  value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   className="bg-light border-0 p-2"
                 />
@@ -406,15 +407,15 @@ const Reports = () => {
             </Form.Group>
           </Col>
           <Col xs={12} lg={5} className="mt-2 mt-lg-0 d-flex flex-column flex-sm-row justify-content-lg-end align-items-stretch align-items-lg-end gap-2">
-            <button 
-              className="btn btn-light px-3 py-2 border text-muted fw-bold d-flex align-items-center justify-content-center gap-2" 
+            <button
+              className="btn btn-light px-3 py-2 border text-muted fw-bold d-flex align-items-center justify-content-center gap-2"
               style={{ borderRadius: '10px', height: '46px' }}
               onClick={() => setShowAdvanced(!showAdvanced)}
             >
               <FilterCircle size={18} /> {t('reports.filters')} {showAdvanced ? '(-)' : '(+)'}
             </button>
-            <button 
-              className="tea-button-primary px-4 py-2" 
+            <button
+              className="tea-button-primary px-4 py-2"
               style={{ borderRadius: '10px', height: '46px' }}
               onClick={fetchReport}
               disabled={loading}
@@ -423,44 +424,44 @@ const Reports = () => {
             </button>
           </Col>
         </Row>
-        
+
         {/* ADVANCED FILTERS DROPDOWN */}
         <Collapse in={showAdvanced}>
           <div className="mt-3 pt-3 border-top mt-md-4 pt-md-4">
-             <Row className="g-3">
-               <Col md={6} lg={4}>
-                  <Form.Group>
-                    <Form.Label className="small fw-bold text-muted uppercase mb-2">{t('reports.filterByPerson')}</Form.Label>
-                    <Form.Select 
-                      className="bg-light border-0 p-3" 
-                      style={{ borderRadius: '10px' }}
-                      value={selectedPerson}
-                      onChange={(e) => setSelectedPerson(e.target.value)}
-                    >
-                      <option value="">{t('reports.allPeople')}</option>
-                      {peopleList.map(p => (
-                         <option key={p.id} value={p.id}>{p.name}</option>
-                      ))}
-                    </Form.Select>
-                  </Form.Group>
-               </Col>
-               <Col md={6} lg={4}>
-                  <Form.Group>
-                    <Form.Label className="small fw-bold text-muted uppercase mb-2">{t('reports.filterByVenue')}</Form.Label>
-                    <Form.Select 
-                      className="bg-light border-0 p-3" 
-                      style={{ borderRadius: '10px' }}
-                      value={selectedLocation}
-                      onChange={(e) => setSelectedLocation(e.target.value)}
-                    >
-                      <option value="">{t('reports.allVenues')}</option>
-                      {locationsList.map(l => (
-                         <option key={l.id} value={l.id}>{l.name}</option>
-                      ))}
-                    </Form.Select>
-                  </Form.Group>
-               </Col>
-             </Row>
+            <Row className="g-3">
+              <Col md={6} lg={4}>
+                <Form.Group>
+                  <Form.Label className="small fw-bold text-muted uppercase mb-2">{t('reports.filterByPerson')}</Form.Label>
+                  <Form.Select
+                    className="bg-light border-0 p-3"
+                    style={{ borderRadius: '10px' }}
+                    value={selectedPerson}
+                    onChange={(e) => setSelectedPerson(e.target.value)}
+                  >
+                    <option value="">{t('reports.allPeople')}</option>
+                    {peopleList.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col md={6} lg={4}>
+                <Form.Group>
+                  <Form.Label className="small fw-bold text-muted uppercase mb-2">{t('reports.filterByVenue')}</Form.Label>
+                  <Form.Select
+                    className="bg-light border-0 p-3"
+                    style={{ borderRadius: '10px' }}
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                  >
+                    <option value="">{t('reports.allVenues')}</option>
+                    {locationsList.map(l => (
+                      <option key={l.id} value={l.id}>{l.name}</option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
           </div>
         </Collapse>
       </div>
@@ -486,7 +487,7 @@ const Reports = () => {
         <Col xs={12} md={4}>
           <div className="card-premium p-4 border shadow-sm bg-white text-center rounded-4 h-100" style={{ borderLeft: '6px solid #10b981' }}>
             <div className="bg-success-subtle rounded-circle d-inline-flex p-3 mb-3">
-              <span className="fs-3 fw-bold text-success">€</span>
+              <CurrencyEuro className="text-success fs-3" />
             </div>
             <h3 className="fw-bold mb-1">€ {parseFloat(reportData.total_spending || 0).toFixed(2)}</h3>
             <span className="text-muted small uppercase fw-bold letter-spacing-1">{t('reports.totalSpending')}</span>
@@ -497,19 +498,19 @@ const Reports = () => {
       {/* 📃 RESULTS VIEW SWITCHER */}
       <div className="card-premium bg-white border shadow-sm rounded-4 overflow-hidden mb-5">
         <div className="p-4 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-          
+
           <div className="bg-light p-1 rounded-3 d-inline-flex border">
-            <button 
+            <button
               className={`btn btn-sm px-4 fw-bold rounded-2 ${viewMode === 'agrupada' ? 'bg-white shadow-sm text-primary' : 'text-muted border-0'}`}
               onClick={() => setViewMode('agrupada')}
             >
-               {t('reports.groupedView')}
+              {t('reports.groupedView')}
             </button>
-            <button 
+            <button
               className={`btn btn-sm px-4 fw-bold rounded-2 ${viewMode === 'detalhada' ? 'bg-white shadow-sm text-primary' : 'text-muted border-0'}`}
               onClick={() => setViewMode('detalhada')}
             >
-               <ListTask className="me-2" /> {t('reports.detailedLog')}
+              <ListTask className="me-2" /> {t('reports.detailedLog')}
             </button>
           </div>
 
@@ -522,35 +523,35 @@ const Reports = () => {
             </button>
           </div>
         </div>
-        
+
         {/* VIEW 1: AGRUPADA */}
         {viewMode === 'agrupada' && (
           <Table hover responsive className="mb-0 overflow-hidden">
             <thead className="bg-light">
               <tr>
-                <th 
-                  className="px-5 py-3 text-muted uppercase small fw-bold cursor-pointer" 
+                <th
+                  className="px-5 py-3 text-muted uppercase small fw-bold cursor-pointer"
                   onClick={() => requestGroupedSort('nome')}
                   style={{ cursor: 'pointer' }}
                 >
                   {t('people.collaborator')} <GroupedSortIcon columnKey="nome" />
                 </th>
-                <th 
-                  className="py-3 text-muted uppercase small fw-bold text-center cursor-pointer" 
+                <th
+                  className="py-3 text-muted uppercase small fw-bold text-center cursor-pointer"
                   onClick={() => requestGroupedSort('locais')}
                   style={{ cursor: 'pointer' }}
                 >
                   {t('reports.locationsWorked')} <GroupedSortIcon columnKey="locais" />
                 </th>
-                <th 
-                  className="py-3 text-muted uppercase small fw-bold text-end cursor-pointer" 
+                <th
+                  className="py-3 text-muted uppercase small fw-bold text-end cursor-pointer"
                   onClick={() => requestGroupedSort('horas')}
                   style={{ cursor: 'pointer' }}
                 >
                   {t('reports.totalHoursPeriod')} <GroupedSortIcon columnKey="horas" />
                 </th>
-                <th 
-                  className="py-3 text-muted uppercase small fw-bold text-end pe-5 cursor-pointer" 
+                <th
+                  className="py-3 text-muted uppercase small fw-bold text-end pe-5 cursor-pointer"
                   onClick={() => requestGroupedSort('total_cost')}
                   style={{ cursor: 'pointer' }}
                 >
@@ -564,11 +565,11 @@ const Reports = () => {
                 <tr key={row.id}>
                   <td className="px-5 py-3">
                     <div className="d-flex align-items-center gap-3">
-                      <img 
-                        src={row.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.nome)}&background=6366f1&color=fff`} 
-                        alt={row.nome} 
-                        className="rounded-circle shadow-sm" 
-                        style={{ width: '40px', height: '40px' }} 
+                      <img
+                        src={row.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.nome)}&background=6366f1&color=fff`}
+                        alt={row.nome}
+                        className="rounded-circle shadow-sm"
+                        style={{ width: '40px', height: '40px' }}
                       />
                       <div>
                         <div className="fw-bold text-dark">{row.nome}</div>
@@ -605,29 +606,29 @@ const Reports = () => {
           <Table hover responsive className="mb-0 overflow-hidden" size="sm">
             <thead className="bg-light">
               <tr>
-                <th 
-                  className="px-4 py-3 text-muted uppercase small fw-bold cursor-pointer" 
+                <th
+                  className="px-4 py-3 text-muted uppercase small fw-bold cursor-pointer"
                   onClick={() => requestSort('clock_in')}
                   style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
                 >
                   {t('reports.dateTimeIn')} <SortIcon columnKey="clock_in" />
                 </th>
-                <th 
-                  className="py-3 text-muted uppercase small fw-bold cursor-pointer" 
+                <th
+                  className="py-3 text-muted uppercase small fw-bold cursor-pointer"
                   onClick={() => requestSort('clock_out')}
                   style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
                 >
                   {t('reports.dateTimeOut')} <SortIcon columnKey="clock_out" />
                 </th>
-                <th 
-                  className="py-3 text-muted uppercase small fw-bold cursor-pointer" 
+                <th
+                  className="py-3 text-muted uppercase small fw-bold cursor-pointer"
                   onClick={() => requestSort('person_name')}
                   style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
                 >
                   {t('people.collaborator')} <SortIcon columnKey="person_name" />
                 </th>
-                <th 
-                  className="py-3 text-muted uppercase small fw-bold cursor-pointer" 
+                <th
+                  className="py-3 text-muted uppercase small fw-bold cursor-pointer"
                   onClick={() => requestSort('location_name')}
                   style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
                 >
@@ -648,9 +649,9 @@ const Reports = () => {
                   <td className="py-3 fw-600">{log.person_name}</td>
                   <td className="py-3 text-muted">{log.location_name}</td>
                   <td className="py-3 text-end pe-4">
-                     <button className="btn btn-sm btn-light border py-1 px-2 text-primary" onClick={() => openEditLogModal(log)}>
-                       <PencilSquare /> {t('reports.edit')}
-                     </button>
+                    <button className="btn btn-sm btn-light border py-1 px-2 text-primary" onClick={() => openEditLogModal(log)}>
+                      <PencilSquare /> {t('reports.edit')}
+                    </button>
                   </td>
                 </tr>
               )) : (
@@ -663,7 +664,7 @@ const Reports = () => {
             </tbody>
           </Table>
         )}
-        
+
         <div className="p-3 bg-light small text-center text-muted border-top">
           {viewMode === 'agrupada' ? 'Mostrando o consolidado das horas validadas (apenas finalizadas).' : 'Extrato completo de lançamentos em banco de dados.'}
         </div>
@@ -681,14 +682,14 @@ const Reports = () => {
             <Form.Group className="mb-3">
               <Form.Label className="small fw-bold text-muted">{t('people.collaborator')}</Form.Label>
               <Form.Select name="person" value={logFormData.person} onChange={handleLogFormChange} className="bg-light border-0 p-2 rounded-3">
-                 {peopleList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                {peopleList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </Form.Select>
             </Form.Group>
-            
+
             <Form.Group className="mb-3">
               <Form.Label className="small fw-bold text-muted">{t('sidebar.venues')}</Form.Label>
               <Form.Select name="location" value={logFormData.location} onChange={handleLogFormChange} className="bg-light border-0 p-2 rounded-3">
-                 {locationsList.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                {locationsList.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
               </Form.Select>
             </Form.Group>
 
@@ -737,30 +738,30 @@ const Reports = () => {
               </div>
               <div>
                 <div className="fw-bold" style={{ color: 'var(--text-h)' }}>{t('reports.auditTrail')}</div>
-                <div className="text-muted small">Admin only · Last 200 changes</div>
+                <div className="text-muted small">{t('reports.auditAdminOnly')}</div>
               </div>
             </div>
-            <span className="text-muted small">{showAudit ? '▲ Hide' : '▼ Show'}</span>
+            <span className="text-muted small">{showAudit ? t('reports.auditHide') : t('reports.auditShow')}</span>
           </div>
 
           {showAudit && (
             <>
               <div className="px-4 py-3 bg-light border-bottom d-flex flex-wrap gap-3">
                 <Form.Select size="sm" value={auditModelFilter} onChange={e => setAuditModelFilter(e.target.value)} style={{ maxWidth: '180px' }}>
-                  <option value="">All Models</option>
-                  <option value="TimeLog">Time Logs</option>
-                  <option value="Person">People</option>
+                  <option value="">{t('reports.auditAllModels')}</option>
+                  <option value="TimeLog">{t('reports.auditTimeLogs')}</option>
+                  <option value="Person">{t('reports.auditPeople')}</option>
                 </Form.Select>
                 <Form.Select size="sm" value={auditActionFilter} onChange={e => setAuditActionFilter(e.target.value)} style={{ maxWidth: '160px' }}>
-                  <option value="">All Actions</option>
-                  <option value="create">Create</option>
-                  <option value="update">Update</option>
-                  <option value="delete">Delete</option>
+                  <option value="">{t('reports.auditAllActions')}</option>
+                  <option value="create">{t('reports.auditCreate')}</option>
+                  <option value="update">{t('reports.auditUpdate')}</option>
+                  <option value="delete">{t('reports.auditDelete')}</option>
                 </Form.Select>
               </div>
 
               {auditLoading ? (
-                <div className="text-center py-5 text-muted">Loading...</div>
+                <div className="text-center py-5 text-muted">{t('reports.auditLoading')}</div>
               ) : (
                 <Table hover responsive className="mb-0" size="sm">
                   <thead className="bg-light">
@@ -768,59 +769,63 @@ const Reports = () => {
                       <th className="px-4 py-3 text-muted uppercase small fw-bold">{t('reports.auditTimestamp')}</th>
                       <th className="py-3 text-muted uppercase small fw-bold">{t('reports.auditUser')}</th>
                       <th className="py-3 text-muted uppercase small fw-bold">{t('reports.auditAction')}</th>
-                      <th className="py-3 text-muted uppercase small fw-bold">Record</th>
+                      <th className="py-3 text-muted uppercase small fw-bold">{t('reports.auditRecord')}</th>
                       <th className="py-3 text-muted uppercase small fw-bold pe-4 text-end">{t('reports.auditDetails')}</th>
                     </tr>
                   </thead>
                   <tbody className="align-middle small">
-                    {auditLogs.length > 0 ? auditLogs.map(entry => (
-                      <React.Fragment key={entry.id}>
-                        <tr>
-                          <td className="px-4 py-2 text-secondary" style={{ whiteSpace: 'nowrap' }}>{formatDateTime(entry.timestamp)}</td>
-                          <td className="py-2 fw-bold">{entry.user_name || 'System'}</td>
-                          <td className="py-2">
-                            <Badge bg={entry.action === 'delete' ? 'danger' : entry.action === 'create' ? 'success' : 'warning'} className="text-uppercase" style={{ fontSize: '0.7rem' }}>
-                              {entry.action}
-                            </Badge>
-                          </td>
-                          <td className="py-2 text-muted">
-                            <span className="badge bg-light text-dark border me-1" style={{ fontSize: '0.7rem' }}>{entry.model_name}</span>
-                            {entry.object_repr}
-                          </td>
-                          <td className="py-2 text-end pe-4">
-                            {entry.changes && (
-                              <button className="btn btn-sm btn-light border px-2 py-1" style={{ fontSize: '0.75rem' }} onClick={() => setExpandedAudit(expandedAudit === entry.id ? null : entry.id)}>
-                                {expandedAudit === entry.id ? 'Hide diff' : 'View diff'}
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                        {expandedAudit === entry.id && entry.changes && (
-                          <tr style={{ backgroundColor: '#f8f9fa' }}>
-                            <td colSpan="5" className="px-4 py-3">
-                              <div className="d-flex gap-4 flex-wrap">
-                                {entry.changes.old && (
-                                  <div style={{ flex: 1, minWidth: '200px' }}>
-                                    <div className="small fw-bold text-danger mb-1">BEFORE</div>
-                                    <pre className="small text-muted mb-0" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.72rem', maxHeight: '200px', overflowY: 'auto' }}>
-                                      {JSON.stringify(entry.changes.old, null, 2)}
-                                    </pre>
-                                  </div>
-                                )}
-                                {entry.changes.new && (
-                                  <div style={{ flex: 1, minWidth: '200px' }}>
-                                    <div className="small fw-bold text-success mb-1">AFTER</div>
-                                    <pre className="small text-muted mb-0" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.72rem', maxHeight: '200px', overflowY: 'auto' }}>
-                                      {JSON.stringify(entry.changes.new, null, 2)}
-                                    </pre>
-                                  </div>
-                                )}
-                              </div>
+                    {auditLogs.length > 0 ? auditLogs.map(entry => {
+                      const displayAction = entry.action === 'create' ? t('reports.auditCreate') : entry.action === 'update' ? t('reports.auditUpdate') : entry.action === 'delete' ? t('reports.auditDelete') : entry.action;
+                      const displayModel = entry.model_name === 'TimeLog' ? t('reports.auditTimeLogs') : entry.model_name === 'Person' ? t('reports.auditPeople') : entry.model_name;
+                      return (
+                        <React.Fragment key={entry.id}>
+                          <tr>
+                            <td className="px-4 py-2 text-secondary" style={{ whiteSpace: 'nowrap' }}>{formatDateTime(entry.timestamp)}</td>
+                            <td className="py-2 fw-bold">{entry.user_name || t('reports.auditSystemUser')}</td>
+                            <td className="py-2">
+                              <Badge bg={entry.action === 'delete' ? 'danger' : entry.action === 'create' ? 'success' : 'warning'} className="text-uppercase" style={{ fontSize: '0.7rem' }}>
+                                {displayAction}
+                              </Badge>
+                            </td>
+                            <td className="py-2 text-muted">
+                              <span className="badge bg-light text-dark border me-1" style={{ fontSize: '0.7rem' }}>{displayModel}</span>
+                              {entry.object_repr}
+                            </td>
+                            <td className="py-2 text-end pe-4">
+                              {entry.changes && (
+                                <button className="btn btn-sm btn-light border px-2 py-1" style={{ fontSize: '0.75rem' }} onClick={() => setExpandedAudit(expandedAudit === entry.id ? null : entry.id)}>
+                                  {expandedAudit === entry.id ? t('reports.auditHideDiff') : t('reports.auditViewDiff')}
+                                </button>
+                              )}
                             </td>
                           </tr>
-                        )}
-                      </React.Fragment>
-                    )) : (
+                          {expandedAudit === entry.id && entry.changes && (
+                            <tr style={{ backgroundColor: '#f8f9fa' }}>
+                              <td colSpan="5" className="px-4 py-3">
+                                <div className="d-flex gap-4 flex-wrap">
+                                  {entry.changes.old && (
+                                    <div style={{ flex: 1, minWidth: '200px' }}>
+                                      <div className="small fw-bold text-danger mb-1">{t('reports.auditBefore')}</div>
+                                      <pre className="small text-muted mb-0" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.72rem', maxHeight: '200px', overflowY: 'auto' }}>
+                                        {JSON.stringify(entry.changes.old, null, 2)}
+                                      </pre>
+                                    </div>
+                                  )}
+                                  {entry.changes.new && (
+                                    <div style={{ flex: 1, minWidth: '200px' }}>
+                                      <div className="small fw-bold text-success mb-1">{t('reports.auditAfter')}</div>
+                                      <pre className="small text-muted mb-0" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.72rem', maxHeight: '200px', overflowY: 'auto' }}>
+                                        {JSON.stringify(entry.changes.new, null, 2)}
+                                      </pre>
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    }) : (
                       <tr>
                         <td colSpan="5" className="text-center py-5 text-muted">{t('reports.noAuditLogs')}</td>
                       </tr>
