@@ -12,7 +12,9 @@ import {
   FilterCircle,
   ListTask,
   PencilSquare,
-  Trash
+  Trash,
+  CaretUpFill,
+  CaretDownFill
 } from 'react-bootstrap-icons';
 import axios from 'axios';
 import { jsPDF } from "jspdf";
@@ -80,6 +82,12 @@ const Reports = () => {
     clock_in: '',
     clock_out: ''
   });
+
+  // Sorting state
+  const [sortConfig, setSortConfig] = useState({ key: 'clock_in', direction: 'desc' });
+  const [groupedSortConfig, setGroupedSortConfig] = useState({ key: 'horas', direction: 'desc' });
+
+
 
   useEffect(() => {
     fetchOptions();
@@ -231,6 +239,86 @@ const Reports = () => {
     XLSX.utils.book_append_sheet(workbook, worksheet, viewMode === 'agrupada' ? "Relatório" : "Extrato");
     XLSX.writeFile(workbook, `relatorio_${viewMode}_${startDate}_${endDate}.xlsx`);
   };
+
+  // ----- SORTING LOGIC -----
+  const requestSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortedLogs = () => {
+    let sortableLogs = [...(reportData.raw_logs || [])];
+    if (sortConfig.key !== null) {
+      sortableLogs.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        // Handle nulls for clock_out
+        if (aValue === null) aValue = '';
+        if (bValue === null) bValue = '';
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableLogs;
+  };
+
+  const SortIcon = ({ columnKey }) => {
+    if (sortConfig.key !== columnKey) {
+      return <CaretUpFill className="ms-1 text-muted opacity-25" style={{ fontSize: '0.7rem' }} />;
+    }
+    return sortConfig.direction === 'asc' 
+      ? <CaretUpFill className="ms-1 text-primary" style={{ fontSize: '0.7rem' }} /> 
+      : <CaretDownFill className="ms-1 text-primary" style={{ fontSize: '0.7rem' }} />;
+  };
+
+  // ----- GROUPED SORTING LOGIC -----
+  const requestGroupedSort = (key) => {
+    let direction = 'asc';
+    if (groupedSortConfig.key === key && groupedSortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setGroupedSortConfig({ key, direction });
+  };
+
+  const getSortedBreakdown = () => {
+    let sortableData = [...(reportData.breakdown || [])];
+    if (groupedSortConfig.key !== null) {
+      sortableData.sort((a, b) => {
+        let aValue = a[groupedSortConfig.key];
+        let bValue = b[groupedSortConfig.key];
+
+        if (aValue < bValue) {
+          return groupedSortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return groupedSortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableData;
+  };
+
+  const GroupedSortIcon = ({ columnKey }) => {
+    if (groupedSortConfig.key !== columnKey) {
+      return <CaretUpFill className="ms-1 text-muted opacity-25" style={{ fontSize: '0.7rem' }} />;
+    }
+    return groupedSortConfig.direction === 'asc' 
+      ? <CaretUpFill className="ms-1 text-primary" style={{ fontSize: '0.7rem' }} /> 
+      : <CaretDownFill className="ms-1 text-primary" style={{ fontSize: '0.7rem' }} />;
+  };
+
+
 
   return (
     <div className="relatorios-container px-4 py-3">
@@ -402,13 +490,31 @@ const Reports = () => {
           <Table hover responsive className="mb-0 overflow-hidden">
             <thead className="bg-light">
               <tr>
-                <th className="px-5 py-3 text-muted uppercase small fw-bold">{t('people.collaborator')}</th>
-                <th className="py-3 text-muted uppercase small fw-bold text-center">{t('reports.locationsWorked')}</th>
-                <th className="py-3 text-muted uppercase small fw-bold text-end pe-5">{t('reports.totalHoursPeriod')}</th>
+                <th 
+                  className="px-5 py-3 text-muted uppercase small fw-bold cursor-pointer" 
+                  onClick={() => requestGroupedSort('nome')}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {t('people.collaborator')} <GroupedSortIcon columnKey="nome" />
+                </th>
+                <th 
+                  className="py-3 text-muted uppercase small fw-bold text-center cursor-pointer" 
+                  onClick={() => requestGroupedSort('locais')}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {t('reports.locationsWorked')} <GroupedSortIcon columnKey="locais" />
+                </th>
+                <th 
+                  className="py-3 text-muted uppercase small fw-bold text-end pe-5 cursor-pointer" 
+                  onClick={() => requestGroupedSort('horas')}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {t('reports.totalHoursPeriod')} <GroupedSortIcon columnKey="horas" />
+                </th>
               </tr>
             </thead>
             <tbody className="align-middle">
-              {reportData.breakdown && reportData.breakdown.length > 0 ? reportData.breakdown.map((row) => (
+              {getSortedBreakdown().length > 0 ? getSortedBreakdown().map((row) => (
                 <tr key={row.id}>
                   <td className="px-5 py-3">
                     <div className="d-flex align-items-center gap-3">
@@ -449,15 +555,39 @@ const Reports = () => {
           <Table hover responsive className="mb-0 overflow-hidden" size="sm">
             <thead className="bg-light">
               <tr>
-                <th className="px-4 py-3 text-muted uppercase small fw-bold">{t('reports.dateTimeIn')}</th>
-                <th className="py-3 text-muted uppercase small fw-bold">{t('reports.dateTimeOut')}</th>
-                <th className="py-3 text-muted uppercase small fw-bold">{t('people.collaborator')}</th>
-                <th className="py-3 text-muted uppercase small fw-bold">{t('sidebar.venues')}</th>
+                <th 
+                  className="px-4 py-3 text-muted uppercase small fw-bold cursor-pointer" 
+                  onClick={() => requestSort('clock_in')}
+                  style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
+                >
+                  {t('reports.dateTimeIn')} <SortIcon columnKey="clock_in" />
+                </th>
+                <th 
+                  className="py-3 text-muted uppercase small fw-bold cursor-pointer" 
+                  onClick={() => requestSort('clock_out')}
+                  style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
+                >
+                  {t('reports.dateTimeOut')} <SortIcon columnKey="clock_out" />
+                </th>
+                <th 
+                  className="py-3 text-muted uppercase small fw-bold cursor-pointer" 
+                  onClick={() => requestSort('person_name')}
+                  style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
+                >
+                  {t('people.collaborator')} <SortIcon columnKey="person_name" />
+                </th>
+                <th 
+                  className="py-3 text-muted uppercase small fw-bold cursor-pointer" 
+                  onClick={() => requestSort('location_name')}
+                  style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
+                >
+                  {t('sidebar.venues')} <SortIcon columnKey="location_name" />
+                </th>
                 <th className="py-3 text-muted uppercase small fw-bold text-end pe-4">{t('reports.action')}</th>
               </tr>
             </thead>
             <tbody className="align-middle small">
-              {reportData.raw_logs && reportData.raw_logs.length > 0 ? reportData.raw_logs.map((log) => (
+              {getSortedLogs().length > 0 ? getSortedLogs().map((log) => (
                 <tr key={log.id}>
                   <td className="px-4 py-3 fw-bold text-secondary">
                     {formatDateTime(log.clock_in)}

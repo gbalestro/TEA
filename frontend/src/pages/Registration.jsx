@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Row, Col, Form, Button, Badge } from 'react-bootstrap';
+import { Row, Col, Form, Button, Badge, Modal } from 'react-bootstrap';
 import { 
   CheckCircle,
   People
@@ -23,6 +23,12 @@ const Registration = () => {
   const [isManualMode, setIsManualMode] = useState(false);
   const [startTime, setStartTime] = useState(''); // Used when isManualMode=true
   const [endTime, setEndTime] = useState('');     // Used when isManualMode=true (Optional Clock-out)
+  
+  // Clock-out Modal State
+  const [showClockOutModal, setShowClockOutModal] = useState(false);
+  const [isManualClockOut, setIsManualClockOut] = useState(false);
+  const [manualClockOutTime, setManualClockOutTime] = useState('');
+
 
   useEffect(() => {
     fetchData();
@@ -79,16 +85,31 @@ const Registration = () => {
     }
   };
 
-  const handleClockOutAll = async () => {
-    if(window.confirm("Deseja encerrar o turno de todas as pessoas ativas?")) {
-      try {
-        await axios.post(`${API_BASE}/logs/clock_out_all/`);
-        fetchData();
-      } catch (error) {
-       console.error("Erro ao finalizar todos:", error);
+  const handleClockOutAll = () => {
+    // Reset modal state before showing
+    const nowLocal = new Date();
+    nowLocal.setMinutes(nowLocal.getMinutes() - nowLocal.getTimezoneOffset());
+    setManualClockOutTime(nowLocal.toISOString().slice(0, 16));
+    setIsManualClockOut(false);
+    setShowClockOutModal(true);
+  };
+
+  const confirmClockOutAll = async () => {
+    try {
+      const payload = {};
+      if (isManualClockOut && manualClockOutTime) {
+        payload.clock_out = new Date(manualClockOutTime).toISOString();
       }
+      
+      await axios.post(`${API_BASE}/logs/clock_out_all/`, payload);
+      setShowClockOutModal(false);
+      fetchData();
+    } catch (error) {
+      console.error("Erro ao finalizar todos:", error);
+      alert("Houve um erro ao realizar o clock-out.");
     }
   };
+
 
   const setModeNow = () => {
     setIsManualMode(false);
@@ -133,17 +154,26 @@ const Registration = () => {
   return (
     <div className="registro-container px-4 py-3">
       
-      {/* B: ACTIVE HEADER TOOLBAR */}
-      <div className="card-premium p-3 mb-4 d-flex justify-content-between align-items-center bg-light border shadow-sm" style={{ borderRadius: '12px' }}>
-         <div className="d-flex align-items-center gap-2">
-            <span className="fw-bold" style={{ fontSize: '1.2rem'}}>TEA / <span className="text-muted">{t('registration.title')}</span></span>
-         </div>
-         <div className="d-flex align-items-center gap-3">
-            <span className="text-muted fw-500">{t('registration.currentlyActive')}: [ <strong className="text-primary">{activeWorkers.length}</strong> ] {t('registration.peopleIn')}</span>
-            <Button variant="outline-danger" size="sm" className="fw-bold px-3" onClick={handleClockOutAll} style={{ borderRadius: '8px' }} disabled={activeWorkers.length === 0}>
-              {t('registration.clockOutAll')}
-            </Button>
-         </div>
+      {/* 🚀 HEADER SECTION */}
+      <div className="d-flex justify-content-between align-items-center mb-5 bg-white p-4 rounded-4 shadow-sm border">
+        <div>
+          <h2 className="fw-bold mb-1" style={{ color: 'var(--text-h)', fontSize: '1.75rem' }}>{t('registration.title')}</h2>
+          <p className="text-muted mb-0">
+            {t('registration.currentlyActive')}: <strong className="text-primary">{activeWorkers.length}</strong> {t('registration.peopleIn')}
+          </p>
+        </div>
+        <div className="d-flex gap-2">
+          <Button 
+            variant="outline-danger" 
+            size="sm" 
+            className="fw-bold px-3 py-2 d-flex align-items-center gap-2" 
+            onClick={handleClockOutAll} 
+            style={{ borderRadius: '10px' }} 
+            disabled={activeWorkers.length === 0}
+          >
+            {t('registration.clockOutAll')}
+          </Button>
+        </div>
       </div>
 
       {/* C1: CURRENTLY WORKING */}
@@ -315,6 +345,61 @@ const Registration = () => {
           </Row>
         </div>
       </div>
+
+      {/* 🏁 CLOCK-OUT ALL MODAL */}
+      <Modal show={showClockOutModal} onHide={() => setShowClockOutModal(false)} centered>
+        <Modal.Header closeButton className="border-0">
+          <Modal.Title className="fw-bold">{t('registration.clockOutAll')}?</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="px-4 pb-4">
+          <p className="text-muted mb-4">{t('registration.clockOutAllConfirm', 'Deseja encerrar o turno de todas as pessoas que estão trabalhando agora?')}</p>
+          
+          <div className="d-flex gap-2 mb-4">
+            <button 
+              className={`btn flex-grow-1 py-2 fw-bold ${!isManualClockOut ? 'btn-primary' : 'btn-light border'}`}
+              onClick={() => setIsManualClockOut(false)}
+            >
+              🚀 {t('registration.useNow')}
+            </button>
+            <button 
+              className={`btn flex-grow-1 py-2 fw-bold ${isManualClockOut ? 'btn-primary' : 'btn-light border'}`}
+              onClick={() => setIsManualClockOut(true)}
+            >
+              📅 {t('registration.manual')}
+            </button>
+          </div>
+
+          {isManualClockOut && (
+            <div className="mb-3 animate__animated animate__fadeIn">
+              <Form.Label className="small fw-bold text-muted uppercase">{t('registration.selectTime', 'Selecionar Horário')}</Form.Label>
+              <Form.Control 
+                type="datetime-local" 
+                className="bg-light border-0 p-3" 
+                style={{ borderRadius: '10px' }}
+                value={manualClockOutTime}
+                onChange={(e) => setManualClockOutTime(e.target.value)}
+              />
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer className="border-0 pt-3 pb-4 d-flex flex-column flex-sm-row justify-content-center gap-2">
+          <Button 
+            variant="light" 
+            className="fw-bold px-4 py-2 w-100 w-sm-auto" 
+            onClick={() => setShowClockOutModal(false)} 
+            style={{ borderRadius: '10px' }}
+          >
+            {t('people.cancel')}
+          </Button>
+          <button 
+            className="tea-button-primary px-4 py-2 w-100 w-sm-auto" 
+            onClick={confirmClockOutAll} 
+            style={{ borderRadius: '10px' }}
+          >
+            {t('registration.confirmClockOut', 'Confirmar Saída')}
+          </button>
+        </Modal.Footer>
+      </Modal>
 
     </div>
   );

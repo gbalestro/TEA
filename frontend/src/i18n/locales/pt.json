@@ -38,11 +38,14 @@
     "startTime": "Hora de Início",
     "endTime": "Hora de Término (Opcional)",
     "useNow": "Agora",
-    "manual": "Manual (Registros Passados)",
-    "startTracking": "INICIAR RASTREAMENTO PARA {{count}} PESSOAS",
+    "manual": "Manual",
+    "startTracking": "INICIAR REGISTRO DE {{count}} PESSOAS",
     "autoClockOut": "(Check-out Automático Ativado)",
     "noPeopleRegistered": "Nenhuma pessoa cadastrada via /pessoas ainda.",
-    "createVenues": "⚠️ Crie locais primeiro."
+    "createVenues": "⚠️ Crie locais primeiro.",
+    "clockOutAllConfirm": "Deseja encerrar o turno de todas as pessoas que estão trabalhando agora?",
+    "selectTime": "Selecionar Horário",
+    "confirmClockOut": "Confirmar Saída"
   },
   "people": {
     "title": "Gestão de Pessoas",

@@ -38,11 +38,14 @@
     "startTime": "Start Time",
     "endTime": "End Time (Optional In & Out)",
     "useNow": "Use Now",
-    "manual": "Manual (Past Logs)",
+    "manual": "Manual",
     "startTracking": "START TRACKING FOR {{count}} PEOPLE",
     "autoClockOut": "(Auto Clock-out Enabled)",
     "noPeopleRegistered": "No people registered via /people yet.",
-    "createVenues": "⚠️ Create venues first."
+    "createVenues": "⚠️ Create venues first.",
+    "clockOutAllConfirm": "Are you sure you want to end the shift for everyone currently working?",
+    "selectTime": "Select Time",
+    "confirmClockOut": "Confirm Exit"
   },
   "people": {
     "title": "People Management",

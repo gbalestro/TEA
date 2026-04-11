@@ -114,7 +114,13 @@ class TimeLogViewSet(viewsets.ModelViewSet):
     def clock_out(self, request, pk=None):
         """Individual clock out"""
         log = self.get_object()
-        log.clock_out = timezone.now()
+        clock_out_time = request.data.get('clock_out')
+        
+        if clock_out_time:
+            log.clock_out = clock_out_time
+        else:
+            log.clock_out = timezone.now()
+            
         log.is_completed = True
         log.save()
         return Response(TimeLogSerializer(log).data)
@@ -122,10 +128,15 @@ class TimeLogViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def clock_out_all(self, request):
         """Clock out everyone who is currently active"""
+        clock_out_time = request.data.get('clock_out')
+        
+        if not clock_out_time:
+            clock_out_time = timezone.now()
+            
         active_logs = TimeLog.objects.filter(clock_out__isnull=True)
         count = active_logs.count()
         for log in active_logs:
-            log.clock_out = timezone.now()
+            log.clock_out = clock_out_time
             log.is_completed = True
             log.save()
         return Response({'message': f'{count} logs closed successfully'}, status=status.HTTP_200_OK)
