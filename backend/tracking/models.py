@@ -20,6 +20,7 @@ class Person(models.Model):
     email = models.EmailField(unique=True, verbose_name="E-mail", null=True, blank=True)
     phone = models.CharField(max_length=20, verbose_name="Telefone", null=True, blank=True)
     photo = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="Valor Hora")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -56,3 +57,21 @@ class TimeLog(models.Model):
         verbose_name = "Registro de Tempo"
         verbose_name_plural = "Registros de Tempo"
         ordering = ['-clock_in']
+class AuditEntry(models.Model):
+    ACTION_CHOICES = [
+        ('create', 'Create'),
+        ('update', 'Update'),
+        ('delete', 'Delete'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Usuário")
+    action = models.CharField(max_length=10, choices=ACTION_CHOICES)
+    model_name = models.CharField(max_length=50) # TimeLog, Person, etc.
+    object_id = models.IntegerField(null=True)
+    object_repr = models.CharField(max_length=255) # e.g. "Joao @ Cafe (10:00)"
+    changes = models.JSONField(null=True, blank=True) # {"old": {...}, "new": {...}}
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Registro de Auditoria"
+        verbose_name_plural = "Registros de Auditoria"
+        ordering = ['-timestamp']

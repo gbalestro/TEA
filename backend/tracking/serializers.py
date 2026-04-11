@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Person, Location, TimeLog, UserProfile
+from .models import Person, Location, TimeLog, UserProfile, AuditEntry
 
 class UserSerializer(serializers.ModelSerializer):
     role = serializers.CharField(source='profile.role', required=False)
@@ -52,3 +52,10 @@ class TimeLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = TimeLog
         fields = '__all__'
+
+class AuditEntrySerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.username', read_only=True, default='System')
+
+    class Meta:
+        model = AuditEntry
+        fields = ['id', 'user_name', 'action', 'model_name', 'object_repr', 'changes', 'timestamp']

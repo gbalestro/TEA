@@ -23,7 +23,11 @@
     "workedThisMonth": "Worked this Month",
     "viewReports": "View Reports",
     "systemOnline": "System Online",
-    "systemStatus": "All records and APIs operating normally. Database updated."
+    "systemStatus": "All records and APIs operating normally. Database updated.",
+    "visualCharts": "Visual Charts / Analytics",
+    "dailyPerformance": "Daily Performance (Last 30 Days)",
+    "hoursPerDay": "Hours / Day",
+    "venueDistribution": "Venue Distribution"
   },
   "registration": {
     "title": "Registration",
@@ -64,7 +68,8 @@
     "cancel": "Cancel",
     "save": "Save Person",
     "update": "Update",
-    "delete": "Delete Collaborator"
+    "delete": "Delete Collaborator",
+    "hourlyRate": "Hourly Rate"
   },
   "venues": {
     "title": "Venues & Events Management",
@@ -95,12 +100,14 @@
     "filterByVenue": "Filter by Venue",
     "allVenues": "All Venues",
     "totalHoursPeriod": "Total Hours in Period",
+    "totalSpending": "Total Spending",
     "collaboratorsMonitored": "Collaborators Monitored",
     "averagePerCollaborator": "Average per Collaborator",
     "groupedView": "Grouped View",
     "detailedLog": "Detailed Log",
     "export": "Export",
     "locationsWorked": "Locations Worked",
+    "totalCost": "Total Cost",
     "noRecords": "No hour records found with these filters.",
     "dateTimeIn": "Date & Time (IN)",
     "dateTimeOut": "Date & Time (OUT)",

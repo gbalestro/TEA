@@ -10,6 +10,46 @@ import '../App.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
+// 🕒 LIVE TIMER COMPONENT
+const LiveTimer = ({ startTime }) => {
+  const [elapsed, setElapsed] = useState('');
+
+  useEffect(() => {
+    const calculateElapsed = () => {
+      const start = new Date(startTime);
+      const now = new Date();
+      const diffMs = now - start;
+
+      if (diffMs < 0) {
+        setElapsed('00:00:00');
+        return;
+      }
+
+      const totalSeconds = Math.floor(diffMs / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      const pad = (num) => String(num).padStart(2, '0');
+      setElapsed(`${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`);
+    };
+
+    calculateElapsed();
+    const interval = setInterval(calculateElapsed, 1000);
+    return () => clearInterval(interval);
+  }, [startTime]);
+
+  return (
+    <div className="d-flex align-items-center gap-2">
+      <span className="pulse-dot"></span>
+      <span className="fw-bold font-monospace text-primary" style={{ fontSize: '1.1rem', letterSpacing: '0.5px' }}>
+        {elapsed}
+      </span>
+    </div>
+  );
+};
+
+
 const Registration = () => {
   const { t } = useTranslation();
   const [activeWorkers, setActiveWorkers] = useState([]);
@@ -59,9 +99,11 @@ const Registration = () => {
           local: log.location_details.name,
           foto: log.person_details.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(log.person_details.name)}&background=6366f1&color=fff`,
           inicio: timeStr,
+          raw_inicio: log.clock_in,
           tempo: `🏠 ${timeStr}` 
         };
       });
+
       setActiveWorkers(formattedWorkers);
     } catch (error) {
       console.error("Erro ao carregar dados do registro:", error);
@@ -193,7 +235,10 @@ const Registration = () => {
                   </div>
                 </div>
                 <div className="d-flex justify-content-between align-items-center mt-2 border-top pt-3">
-                  <div className="fw-bold text-secondary" style={{ fontSize: '1rem' }}>{worker.tempo}</div>
+                  <div className="text-secondary">
+                    <div className="x-small text-muted uppercase fw-bold mb-1" style={{ fontSize: '0.65rem' }}>{t('registration.startTime')}: {worker.inicio}</div>
+                    <LiveTimer startTime={worker.raw_inicio} />
+                  </div>
                   <Button variant="outline-secondary" size="sm" className="px-3" onClick={() => handleClockOut(worker.id)} style={{ borderRadius: '6px' }}>
                     Clock-out
                   </Button>

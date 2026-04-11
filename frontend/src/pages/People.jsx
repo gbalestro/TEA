@@ -27,7 +27,8 @@ const People = () => {
     position: '',
     email: '',
     phone: '',
-    photo: null
+    photo: null,
+    hourly_rate: 0
   });
   
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -79,7 +80,7 @@ const People = () => {
     setShowModal(false);
     setIsEditMode(false);
     setCurrentId(null);
-    setFormData({ name: '', position: '', email: '', phone: '', photo: null });
+    setFormData({ name: '', position: '', email: '', phone: '', photo: null, hourly_rate: 0 });
     setPhotoPreview(null);
     setSelectedRole('');
     setOtherRole('');
@@ -88,7 +89,7 @@ const People = () => {
   const handleShowAdd = () => {
     setIsEditMode(false);
     setCurrentId(null);
-    setFormData({ name: '', position: '', email: '', phone: '', photo: null });
+    setFormData({ name: '', position: '', email: '', phone: '', photo: null, hourly_rate: 0 });
     setPhotoPreview(null);
     setSelectedRole('');
     setOtherRole('');
@@ -103,7 +104,8 @@ const People = () => {
       position: person.position || '',
       email: person.email || '',
       phone: person.phone || '',
-      photo: null // we don't re-upload the same file unless changed
+      photo: null, // we don't re-upload the same file unless changed
+      hourly_rate: person.hourly_rate || 0
     });
     
     setPhotoPreview(person.photo);
@@ -166,6 +168,7 @@ const People = () => {
       if (emailVal) data.append('email', emailVal);
       if (phoneVal) data.append('phone', phoneVal);
       if (formData.photo) data.append('photo', formData.photo);
+      data.append('hourly_rate', formData.hourly_rate || 0);
 
       if (isEditMode) {
         await axios.put(`${API_URL}${currentId}/`, data, {
@@ -215,8 +218,9 @@ const People = () => {
             <tr style={{ borderBottom: '2px solid #eee' }}>
               <th className="px-4 py-3 text-muted" style={{ width: '25%', fontWeight: '600' }}>{t('people.collaborator')}</th>
               <th className="py-3 text-muted" style={{ width: '35%', fontWeight: '600' }}>{t('people.recentLocations')}</th>
-              <th className="py-3 text-muted text-center" style={{ width: '25%', fontWeight: '600' }}>{t('people.totalHours')}</th>
-              <th className="py-3 text-muted text-center" style={{ width: '15%', fontWeight: '600' }}>{t('people.actions')}</th>
+              <th className="py-3 text-muted text-center" style={{ width: '15%', fontWeight: '600' }}>{t('people.hourlyRate')}</th>
+              <th className="py-3 text-muted text-center" style={{ width: '15%', fontWeight: '600' }}>{t('people.totalHours')}</th>
+              <th className="py-3 text-muted text-center" style={{ width: '10%', fontWeight: '600' }}>{t('people.actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -241,6 +245,11 @@ const People = () => {
                     <span className="badge bg-light text-muted border px-2 py-1 text-wrap text-start" style={{ fontWeight: '500', fontSize: '0.75rem', borderRadius: '4px', maxWidth: '250px' }}>
                       {person.total_locations || '-'}
                     </span>
+                  </div>
+                </td>
+                <td className="py-3 text-md-center cell-rate">
+                  <div className="fw-bold" style={{ fontSize: '1.2rem', color: 'var(--text-h)' }}>
+                    € {parseFloat(person.hourly_rate || 0).toFixed(2)}
                   </div>
                 </td>
                 <td className="py-3 text-md-center cell-hours">
@@ -339,6 +348,12 @@ const People = () => {
                 <Form.Group className="mb-3">
                   <Form.Label className="small fw-bold">{t('people.phone')}</Form.Label>
                   <Form.Control type="text" name="phone" value={formData.phone} onChange={handleInputChange} className="p-2" />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label className="small fw-bold">{t('people.hourlyRate')} (€) *</Form.Label>
+                  <Form.Control type="number" step="0.01" name="hourly_rate" value={formData.hourly_rate} onChange={handleInputChange} className="p-2" />
                 </Form.Group>
               </Col>
             </Row>

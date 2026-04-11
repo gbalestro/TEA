@@ -23,7 +23,11 @@
     "workedThisMonth": "Trabalhadas neste Mês",
     "viewReports": "Ver Relatórios",
     "systemOnline": "Sistema Online",
-    "systemStatus": "Todos os registros e APIs operando normalmente. Banco de Dados atualizado."
+    "systemStatus": "Todos os registros e APIs operando normalmente. Banco de Dados atualizado.",
+    "visualCharts": "Gráficos Visuais / Análises",
+    "dailyPerformance": "Desempenho Diário (Últimos 30 Dias)",
+    "hoursPerDay": "Horas / Dia",
+    "venueDistribution": "Distribuição por Local"
   },
   "registration": {
     "title": "Registro",
@@ -64,7 +68,8 @@
     "cancel": "Cancelar",
     "save": "Salvar Pessoa",
     "update": "Atualizar",
-    "delete": "Excluir Colaborador"
+    "delete": "Excluir Colaborador",
+    "hourlyRate": "Valor Hora"
   },
   "venues": {
     "title": "Gestão de Locais & Eventos",
@@ -95,12 +100,14 @@
     "filterByVenue": "Filtrar por Local",
     "allVenues": "Todos os Locais",
     "totalHoursPeriod": "Total de Horas no Período",
+    "totalSpending": "Gasto Total",
     "collaboratorsMonitored": "Colaboradores Monitorados",
     "averagePerCollaborator": "Média por Colaborador",
     "groupedView": "Visão Agrupada",
     "detailedLog": "Extrato Detalhado",
     "export": "Exportar",
     "locationsWorked": "Localizações Atuadas",
+    "totalCost": "Custo Total",
     "noRecords": "Nenhum registro de hora encontrado com estes filtros.",
     "dateTimeIn": "Data & Hora (IN)",
     "dateTimeOut": "Data & Hora (OUT)",
@@ -111,7 +118,13 @@
     "modalEditTitle": "Editar Lançamento",
     "clockIn": "Entrada (Clock-In)",
     "clockOut": "Saída (Clock-Out)",
-    "delete": "Excluir"
+    "delete": "Excluir",
+    "auditTrail": "Histórico de Auditoria",
+    "auditUser": "Operador",
+    "auditAction": "Ação",
+    "auditDetails": "Alterações",
+    "auditTimestamp": "Data/Hora",
+    "noAuditLogs": "Nenhuma alteração administrativa registrada ainda."
   },
   "tea": {
     "heroSubtitle": "Uma Solução Completa de Monitoramento (Full-Stack)",

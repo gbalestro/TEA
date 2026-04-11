@@ -14,18 +14,22 @@ import {
   PencilSquare,
   Trash,
   CaretUpFill,
-  CaretDownFill
+  CaretDownFill,
+  ShieldShaded
 } from 'react-bootstrap-icons';
 import axios from 'axios';
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import '../App.css';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 const Reports = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const today = new Date();
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
   const formatDate = (dateObj) => dateObj.toISOString().split('T')[0];
@@ -87,6 +91,13 @@ const Reports = () => {
   const [sortConfig, setSortConfig] = useState({ key: 'clock_in', direction: 'desc' });
   const [groupedSortConfig, setGroupedSortConfig] = useState({ key: 'horas', direction: 'desc' });
 
+  // Audit Trail state
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [showAudit, setShowAudit] = useState(false);
+  const [auditModelFilter, setAuditModelFilter] = useState('');
+  const [auditActionFilter, setAuditActionFilter] = useState('');
+  const [expandedAudit, setExpandedAudit] = useState(null);
 
 
   useEffect(() => {
@@ -94,6 +105,11 @@ const Reports = () => {
     fetchReport();
     // eslint-disable-next-line
   }, []);
+
+  useEffect(() => {
+    if (isAdmin && showAudit) fetchAuditLogs();
+    // eslint-disable-next-line
+  }, [showAudit, auditModelFilter, auditActionFilter]);
 
   const fetchOptions = async () => {
     try {
@@ -125,6 +141,21 @@ const Reports = () => {
       alert("Houve um erro ao buscar os dados do relatório.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAuditLogs = async () => {
+    setAuditLoading(true);
+    try {
+      const params = {};
+      if (auditModelFilter) params.model = auditModelFilter;
+      if (auditActionFilter) params.action = auditActionFilter;
+      const res = await axios.get(`${API_BASE}/audit-logs/`, { params });
+      setAuditLogs(Array.isArray(res.data) ? res.data : (res.data.results || []));
+    } catch (err) {
+      console.error('Failed to load audit logs', err);
+    } finally {
+      setAuditLoading(false);
     }
   };
 
@@ -196,8 +227,15 @@ const Reports = () => {
     
     if (viewMode === 'agrupada') {
       if (!reportData.breakdown || reportData.breakdown.length === 0) return alert("Não há dados.");
-      const tableColumn = ["Colaborador", "Posicao", "Locais Trabalhados", "Total Horas"];
-      const tableRows = reportData.breakdown.map(row => [row.nome, row.posicao, row.locais, row.horas.toFixed(1) + 'h']);
+      const tableColumn = ["Colaborador", "Posicao", "Locais", "Horas", "Valor Hora", "Custo Total"];
+      const tableRows = reportData.breakdown.map(row => [
+        row.nome, 
+        row.posicao, 
+        row.locais, 
+        row.horas.toFixed(1) + 'h',
+        '€' + parseFloat(row.hourly_rate || 0).toFixed(2),
+        '€' + parseFloat(row.total_cost || 0).toFixed(2)
+      ]);
       autoTable(doc, { head: [tableColumn], body: tableRows, startY: yPos });
       doc.save(`relatorio_${startDate}_${endDate}.pdf`);
     } else {
@@ -222,7 +260,9 @@ const Reports = () => {
         "Colaborador": row.nome,
         "Posição": row.posicao,
         "Locais Trabalhados": row.locais,
-        "Total Horas": parseFloat(row.horas.toFixed(1))
+        "Total Horas": parseFloat(row.horas.toFixed(1)),
+        "Valor Hora": parseFloat(row.hourly_rate || 0),
+        "Custo Total": parseFloat(row.total_cost || 0)
       }));
     } else {
       if (!reportData.raw_logs || reportData.raw_logs.length === 0) return alert("Não há dados.");
@@ -424,8 +464,6 @@ const Reports = () => {
           </div>
         </Collapse>
       </div>
-
-      {/* 📊 SUMMARY CARDS */}
       <Row className="mb-4 g-3">
         <Col xs={12} sm={6} md={4}>
           <div className="card-premium p-4 border shadow-sm bg-white text-center rounded-4 h-100">
@@ -446,12 +484,12 @@ const Reports = () => {
           </div>
         </Col>
         <Col xs={12} md={4}>
-          <div className="card-premium p-4 border shadow-sm bg-white text-center rounded-4 h-100">
-            <div className="bg-warning-subtle rounded-circle d-inline-flex p-3 mb-3">
-              <BarChart className="text-warning fs-3" />
+          <div className="card-premium p-4 border shadow-sm bg-white text-center rounded-4 h-100" style={{ borderLeft: '6px solid #10b981' }}>
+            <div className="bg-success-subtle rounded-circle d-inline-flex p-3 mb-3">
+              <span className="fs-3 fw-bold text-success">€</span>
             </div>
-            <h3 className="fw-bold mb-1">{reportData.average_hours.toFixed(1)}h</h3>
-            <span className="text-muted small uppercase fw-bold letter-spacing-1">{t('reports.averagePerCollaborator')}</span>
+            <h3 className="fw-bold mb-1">€ {parseFloat(reportData.total_spending || 0).toFixed(2)}</h3>
+            <span className="text-muted small uppercase fw-bold letter-spacing-1">{t('reports.totalSpending')}</span>
           </div>
         </Col>
       </Row>
@@ -505,12 +543,20 @@ const Reports = () => {
                   {t('reports.locationsWorked')} <GroupedSortIcon columnKey="locais" />
                 </th>
                 <th 
-                  className="py-3 text-muted uppercase small fw-bold text-end pe-5 cursor-pointer" 
+                  className="py-3 text-muted uppercase small fw-bold text-end cursor-pointer" 
                   onClick={() => requestGroupedSort('horas')}
                   style={{ cursor: 'pointer' }}
                 >
                   {t('reports.totalHoursPeriod')} <GroupedSortIcon columnKey="horas" />
                 </th>
+                <th 
+                  className="py-3 text-muted uppercase small fw-bold text-end pe-5 cursor-pointer" 
+                  onClick={() => requestGroupedSort('total_cost')}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {t('reports.totalCost')} <GroupedSortIcon columnKey="total_cost" />
+                </th>
+
               </tr>
             </thead>
             <tbody className="align-middle">
@@ -535,13 +581,17 @@ const Reports = () => {
                       {row.locais}
                     </Badge>
                   </td>
-                  <td className="py-3 text-end pe-5">
+                  <td className="py-3 text-end">
                     <div className="fw-bold text-primary fs-5">{row.horas.toFixed(1)}h</div>
+                    <div className="text-muted x-small">€{parseFloat(row.hourly_rate || 0).toFixed(2)}/h</div>
+                  </td>
+                  <td className="py-3 text-end pe-5">
+                    <div className="fw-bold text-success fs-5">€{parseFloat(row.total_cost || 0).toFixed(2)}</div>
                   </td>
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="3" className="text-center py-5 text-muted">
+                  <td colSpan="4" className="text-center py-5 text-muted">
                     {t('reports.noRecords')}
                   </td>
                 </tr>
@@ -672,6 +722,116 @@ const Reports = () => {
           </div>
         </Modal.Footer>
       </Modal>
+
+      {/* 🔐 AUDIT TRAIL — ADMIN ONLY */}
+      {isAdmin && (
+        <div className="card-premium bg-white border shadow-sm rounded-4 overflow-hidden mb-5">
+          <div
+            className="p-4 d-flex justify-content-between align-items-center"
+            style={{ cursor: 'pointer', borderBottom: showAudit ? '1px solid #eee' : 'none' }}
+            onClick={() => setShowAudit(prev => !prev)}
+          >
+            <div className="d-flex align-items-center gap-3">
+              <div className="bg-danger-subtle rounded-circle d-inline-flex p-2">
+                <ShieldShaded className="text-danger" size={20} />
+              </div>
+              <div>
+                <div className="fw-bold" style={{ color: 'var(--text-h)' }}>{t('reports.auditTrail')}</div>
+                <div className="text-muted small">Admin only · Last 200 changes</div>
+              </div>
+            </div>
+            <span className="text-muted small">{showAudit ? '▲ Hide' : '▼ Show'}</span>
+          </div>
+
+          {showAudit && (
+            <>
+              <div className="px-4 py-3 bg-light border-bottom d-flex flex-wrap gap-3">
+                <Form.Select size="sm" value={auditModelFilter} onChange={e => setAuditModelFilter(e.target.value)} style={{ maxWidth: '180px' }}>
+                  <option value="">All Models</option>
+                  <option value="TimeLog">Time Logs</option>
+                  <option value="Person">People</option>
+                </Form.Select>
+                <Form.Select size="sm" value={auditActionFilter} onChange={e => setAuditActionFilter(e.target.value)} style={{ maxWidth: '160px' }}>
+                  <option value="">All Actions</option>
+                  <option value="create">Create</option>
+                  <option value="update">Update</option>
+                  <option value="delete">Delete</option>
+                </Form.Select>
+              </div>
+
+              {auditLoading ? (
+                <div className="text-center py-5 text-muted">Loading...</div>
+              ) : (
+                <Table hover responsive className="mb-0" size="sm">
+                  <thead className="bg-light">
+                    <tr>
+                      <th className="px-4 py-3 text-muted uppercase small fw-bold">{t('reports.auditTimestamp')}</th>
+                      <th className="py-3 text-muted uppercase small fw-bold">{t('reports.auditUser')}</th>
+                      <th className="py-3 text-muted uppercase small fw-bold">{t('reports.auditAction')}</th>
+                      <th className="py-3 text-muted uppercase small fw-bold">Record</th>
+                      <th className="py-3 text-muted uppercase small fw-bold pe-4 text-end">{t('reports.auditDetails')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="align-middle small">
+                    {auditLogs.length > 0 ? auditLogs.map(entry => (
+                      <React.Fragment key={entry.id}>
+                        <tr>
+                          <td className="px-4 py-2 text-secondary" style={{ whiteSpace: 'nowrap' }}>{formatDateTime(entry.timestamp)}</td>
+                          <td className="py-2 fw-bold">{entry.user_name || 'System'}</td>
+                          <td className="py-2">
+                            <Badge bg={entry.action === 'delete' ? 'danger' : entry.action === 'create' ? 'success' : 'warning'} className="text-uppercase" style={{ fontSize: '0.7rem' }}>
+                              {entry.action}
+                            </Badge>
+                          </td>
+                          <td className="py-2 text-muted">
+                            <span className="badge bg-light text-dark border me-1" style={{ fontSize: '0.7rem' }}>{entry.model_name}</span>
+                            {entry.object_repr}
+                          </td>
+                          <td className="py-2 text-end pe-4">
+                            {entry.changes && (
+                              <button className="btn btn-sm btn-light border px-2 py-1" style={{ fontSize: '0.75rem' }} onClick={() => setExpandedAudit(expandedAudit === entry.id ? null : entry.id)}>
+                                {expandedAudit === entry.id ? 'Hide diff' : 'View diff'}
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                        {expandedAudit === entry.id && entry.changes && (
+                          <tr style={{ backgroundColor: '#f8f9fa' }}>
+                            <td colSpan="5" className="px-4 py-3">
+                              <div className="d-flex gap-4 flex-wrap">
+                                {entry.changes.old && (
+                                  <div style={{ flex: 1, minWidth: '200px' }}>
+                                    <div className="small fw-bold text-danger mb-1">BEFORE</div>
+                                    <pre className="small text-muted mb-0" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.72rem', maxHeight: '200px', overflowY: 'auto' }}>
+                                      {JSON.stringify(entry.changes.old, null, 2)}
+                                    </pre>
+                                  </div>
+                                )}
+                                {entry.changes.new && (
+                                  <div style={{ flex: 1, minWidth: '200px' }}>
+                                    <div className="small fw-bold text-success mb-1">AFTER</div>
+                                    <pre className="small text-muted mb-0" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.72rem', maxHeight: '200px', overflowY: 'auto' }}>
+                                      {JSON.stringify(entry.changes.new, null, 2)}
+                                    </pre>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    )) : (
+                      <tr>
+                        <td colSpan="5" className="text-center py-5 text-muted">{t('reports.noAuditLogs')}</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
     </div>
   );

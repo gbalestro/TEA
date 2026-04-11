@@ -6,8 +6,20 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from django.utils import timezone
-from .models import Person, Location, TimeLog, UserProfile
-from .serializers import PersonSerializer, LocationSerializer, TimeLogSerializer, UserSerializer
+from .models import Person, Location, TimeLog, UserProfile, AuditEntry
+from .serializers import PersonSerializer, LocationSerializer, TimeLogSerializer, UserSerializer, AuditEntrySerializer
+
+def log_audit(user, action, instance, changes=None):
+    """Helper to create an AuditEntry record."""
+    AuditEntry.objects.create(
+        user=user if (user and user.is_authenticated) else None,
+        action=action,
+        model_name=instance.__class__.__name__,
+        object_id=instance.id,
+        object_repr=str(instance),
+        changes=changes
+    )
+
 
 class IsAdminRole(IsAuthenticated):
     def has_permission(self, request, view):
@@ -54,6 +66,16 @@ class PersonViewSet(viewsets.ModelViewSet):
             return [AllowAny()]
         return [IsAuthenticated()]
 
+    def perform_update(self, serializer):
+        old = PersonSerializer(self.get_object()).data
+        instance = serializer.save()
+        log_audit(self.request.user, 'update', instance, {'old': dict(old), 'new': PersonSerializer(instance).data})
+
+    def perform_destroy(self, instance):
+        old = PersonSerializer(instance).data
+        log_audit(self.request.user, 'delete', instance, {'old': dict(old)})
+        instance.delete()
+
 class LocationViewSet(viewsets.ModelViewSet):
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
@@ -66,6 +88,16 @@ class LocationViewSet(viewsets.ModelViewSet):
 class TimeLogViewSet(viewsets.ModelViewSet):
     queryset = TimeLog.objects.all()
     serializer_class = TimeLogSerializer
+
+    def perform_update(self, serializer):
+        old = TimeLogSerializer(self.get_object()).data
+        instance = serializer.save()
+        log_audit(self.request.user, 'update', instance, {'old': old, 'new': TimeLogSerializer(instance).data})
+
+    def perform_destroy(self, instance):
+        old = TimeLogSerializer(instance).data
+        log_audit(self.request.user, 'delete', instance, {'old': old})
+        instance.delete()
 
     def get_permissions(self):
         # Allow anyone to clock in/out if they know the person/location ID (kiosk mode)
@@ -169,6 +201,7 @@ class TimeLogViewSet(viewsets.ModelViewSet):
         people = Person.objects.filter(logs__in=logs).distinct()
 
         total_hours = 0.0
+        total_spending = 0.0
 
         for p in people:
             p_logs = logs.filter(person=p)
@@ -181,6 +214,11 @@ class TimeLogViewSet(viewsets.ModelViewSet):
             locais_str = ", ".join(venue_names)
 
             photo_url = request.build_absolute_uri(p.photo.url) if p.photo else None
+            
+            # Calculate cost for this person
+            rate = float(p.hourly_rate)
+            person_cost = hours * rate
+            total_spending += person_cost
 
             report_data.append({
                 'id': p.id,
@@ -188,6 +226,8 @@ class TimeLogViewSet(viewsets.ModelViewSet):
                 'posicao': p.position or 'Colaborador',
                 'foto': photo_url,
                 'horas': hours,
+                'hourly_rate': rate,
+                'total_cost': person_cost,
                 'locais': locais_str
             })
 
@@ -208,9 +248,24 @@ class TimeLogViewSet(viewsets.ModelViewSet):
 
         return Response({
             'total_hours': total_hours,
+            'total_spending': total_spending,
             'collaborators_count': people.count(),
             'average_hours': total_hours / people.count() if people.count() > 0 else 0,
             'breakdown': report_data,
             'raw_logs': raw_logs
         })
 
+class AuditEntryViewSet(viewsets.ReadOnlyModelViewSet):
+    """Read-only admin view of the audit trail."""
+    serializer_class = AuditEntrySerializer
+    permission_classes = [IsAdminRole]
+
+    def get_queryset(self):
+        qs = AuditEntry.objects.select_related('user').all()
+        model = self.request.query_params.get('model')
+        action_filter = self.request.query_params.get('action')
+        if model:
+            qs = qs.filter(model_name=model)
+        if action_filter:
+            qs = qs.filter(action=action_filter)
+        return qs[:200]  # Cap at 200 most recent entries
