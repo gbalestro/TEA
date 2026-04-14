@@ -69,6 +69,12 @@ const Registration = () => {
   const [isManualClockOut, setIsManualClockOut] = useState(false);
   const [manualClockOutTime, setManualClockOutTime] = useState('');
 
+  // Individual Clock-out Modal State
+  const [showIndivClockOutModal, setShowIndivClockOutModal] = useState(false);
+  const [selectedLogId, setSelectedLogId] = useState(null);
+  const [isManualIndivClockOut, setIsManualIndivClockOut] = useState(false);
+  const [manualIndivClockOutTime, setManualIndivClockOutTime] = useState('');
+
 
   useEffect(() => {
     fetchData();
@@ -118,12 +124,29 @@ const Registration = () => {
     }
   };
 
-  const handleClockOut = async (id) => {
+  const handleClockOut = (id) => {
+    const nowLocal = new Date();
+    // Format to YYYY-MM-DDTHH:MM
+    nowLocal.setMinutes(nowLocal.getMinutes() - nowLocal.getTimezoneOffset());
+    setManualIndivClockOutTime(nowLocal.toISOString().slice(0, 16));
+    setIsManualIndivClockOut(false);
+    setSelectedLogId(id);
+    setShowIndivClockOutModal(true);
+  };
+
+  const confirmIndividualClockOut = async () => {
     try {
-      await axios.post(`${API_BASE}/logs/${id}/clock_out/`);
+      const payload = {};
+      if (isManualIndivClockOut && manualIndivClockOutTime) {
+        payload.clock_out = new Date(manualIndivClockOutTime).toISOString();
+      }
+      
+      await axios.post(`${API_BASE}/logs/${selectedLogId}/clock_out/`, payload);
+      setShowIndivClockOutModal(false);
       fetchData(); // Refresh UI
     } catch (error) {
-      console.error("Erro ao fazer clock-out:", error);
+      console.error("Erro ao fazer clock-out individual:", error);
+      alert("Houve um erro ao realizar o clock-out.");
     }
   };
 
@@ -267,44 +290,64 @@ const Registration = () => {
             <Col lg={8} className="border-lg-end pe-lg-4">
               <p className="fw-bold small text-muted mb-4 uppercase">{t('registration.selectPeople')}</p>
               
-              {availablePeople.length > 0 ? (
-                <div className="d-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '20px' }}>
-                  {availablePeople.map(person => {
-                    const isSelected = selectedPeople.includes(person.id);
-                    const avatarSrc = person.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=6366f1&color=fff`;
+              {(() => {
+                const selectablePeople = availablePeople.filter(
+                  person => !activeWorkers.some(worker => worker.person_id === person.id)
+                );
 
-                    return (
-                      <div 
-                        key={person.id} 
-                        className={`text-center cursor-pointer p-2 rounded-3 transition-all ${isSelected ? 'bg-primary-subtle border border-primary' : 'hover-bg-light'}`}
-                        onClick={() => togglePersonSelection(person.id)}
-                        style={{ cursor: 'pointer', transition: 'all 0.2s' }}
-                      >
-                        <div className="position-relative d-inline-block mb-1">
-                          <img 
-                            src={avatarSrc} 
-                            alt={person.name} 
-                            className={`rounded-circle border-3 ${isSelected ? 'border-primary' : 'border-transparent'}`}
-                            style={{ width: '60px', height: '60px', objectFit: 'cover' }} 
-                          />
-                          {isSelected && (
-                            <div className="position-absolute top-0 end-0 bg-primary rounded-circle border border-white" style={{ width: '20px', height: '20px' }}>
-                              <CheckCircle className="text-white w-100 h-100 p-0.5" />
-                            </div>
-                          )}
+                if (availablePeople.length === 0) {
+                  return (
+                    <div className="text-muted p-4 text-center bg-light rounded-3">
+                      {t('registration.noPeopleRegistered')}
+                    </div>
+                  );
+                }
+
+                if (selectablePeople.length === 0) {
+                  return (
+                    <div className="text-muted p-4 text-center bg-light rounded-3">
+                      <CheckCircle className="text-success mb-2" size={24} />
+                      <br />
+                      {t('registration.allWorking', 'Everyone registered is already working.')}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="d-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '20px' }}>
+                    {selectablePeople.map(person => {
+                      const isSelected = selectedPeople.includes(person.id);
+                      const avatarSrc = person.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=6366f1&color=fff`;
+
+                      return (
+                        <div 
+                          key={person.id} 
+                          className={`text-center cursor-pointer p-2 rounded-3 transition-all ${isSelected ? 'bg-primary-subtle border border-primary' : 'hover-bg-light'}`}
+                          onClick={() => togglePersonSelection(person.id)}
+                          style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+                        >
+                          <div className="position-relative d-inline-block mb-1">
+                            <img 
+                              src={avatarSrc} 
+                              alt={person.name} 
+                              className={`rounded-circle border-3 ${isSelected ? 'border-primary' : 'border-transparent'}`}
+                              style={{ width: '60px', height: '60px', objectFit: 'cover' }} 
+                            />
+                            {isSelected && (
+                              <div className="position-absolute top-0 end-0 bg-primary rounded-circle border border-white" style={{ width: '20px', height: '20px' }}>
+                                <CheckCircle className="text-white w-100 h-100 p-0.5" />
+                              </div>
+                            )}
+                          </div>
+                          <div className={`small fw-bold lh-sm text-truncate ${isSelected ? 'text-primary' : 'text-dark'}`} style={{ fontSize: '0.75rem', maxWidth: '80px', margin: '0 auto' }}>
+                            {person.name.split(' ')[0]}
+                          </div>
                         </div>
-                        <div className={`small fw-bold lh-sm text-truncate ${isSelected ? 'text-primary' : 'text-dark'}`} style={{ fontSize: '0.75rem', maxWidth: '80px', margin: '0 auto' }}>
-                          {person.name.split(' ')[0]}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              ) : (
-                <div className="text-muted p-4 text-center bg-light rounded-3">
-                  {t('registration.noPeopleRegistered')}
-                </div>
-              )}
+                      )
+                    })}
+                  </div>
+                );
+              })()}
             </Col>
 
             {/* WHERE & WHEN */}
@@ -439,6 +482,61 @@ const Registration = () => {
           <button 
             className="tea-button-primary px-4 py-2 w-100 w-sm-auto" 
             onClick={confirmClockOutAll} 
+            style={{ borderRadius: '10px' }}
+          >
+            {t('registration.confirmClockOut', 'Confirmar Saída')}
+          </button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* 👤 INDIVIDUAL CLOCK-OUT MODAL */}
+      <Modal show={showIndivClockOutModal} onHide={() => setShowIndivClockOutModal(false)} centered>
+        <Modal.Header closeButton className="border-0">
+          <Modal.Title className="fw-bold">{t('registration.confirmClockOut')}?</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="px-4 pb-4">
+          <p className="text-muted mb-4">{t('registration.clockOutIndividualConfirm', 'Deseja encerrar o turno desta pessoa?')}</p>
+          
+          <div className="d-flex gap-2 mb-4">
+            <button 
+              className={`btn flex-grow-1 py-2 fw-bold ${!isManualIndivClockOut ? 'btn-primary' : 'btn-light border'}`}
+              onClick={() => setIsManualIndivClockOut(false)}
+            >
+              🚀 {t('registration.useNow')}
+            </button>
+            <button 
+              className={`btn flex-grow-1 py-2 fw-bold ${isManualIndivClockOut ? 'btn-primary' : 'btn-light border'}`}
+              onClick={() => setIsManualIndivClockOut(true)}
+            >
+              📅 {t('registration.manual')}
+            </button>
+          </div>
+
+          {isManualIndivClockOut && (
+            <div className="mb-3 animate__animated animate__fadeIn">
+              <Form.Label className="small fw-bold text-muted uppercase">{t('registration.selectTime', 'Selecionar Horário')}</Form.Label>
+              <Form.Control 
+                type="datetime-local" 
+                className="bg-light border-0 p-3" 
+                style={{ borderRadius: '10px' }}
+                value={manualIndivClockOutTime}
+                onChange={(e) => setManualIndivClockOutTime(e.target.value)}
+              />
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer className="border-0 pt-3 pb-4 d-flex flex-column flex-sm-row justify-content-center gap-2">
+          <Button 
+            variant="light" 
+            className="fw-bold px-4 py-2 w-100 w-sm-auto" 
+            onClick={() => setShowIndivClockOutModal(false)} 
+            style={{ borderRadius: '10px' }}
+          >
+            {t('people.cancel')}
+          </Button>
+          <button 
+            className="tea-button-primary px-4 py-2 w-100 w-sm-auto" 
+            onClick={confirmIndividualClockOut} 
             style={{ borderRadius: '10px' }}
           >
             {t('registration.confirmClockOut', 'Confirmar Saída')}

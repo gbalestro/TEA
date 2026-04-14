@@ -46,8 +46,10 @@
     "startTracking": "START TRACKING FOR {{count}} PEOPLE",
     "autoClockOut": "(Auto Clock-out Enabled)",
     "noPeopleRegistered": "No people registered via /people yet.",
+    "allWorking": "Everyone registered is already working.",
     "createVenues": "⚠️ Create venues first.",
     "clockOutAllConfirm": "Are you sure you want to end the shift for everyone currently working?",
+    "clockOutIndividualConfirm": "Do you want to end the shift for this person?",
     "selectTime": "Select Time",
     "confirmClockOut": "Confirm Exit"
   },

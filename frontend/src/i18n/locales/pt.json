@@ -46,8 +46,10 @@
     "startTracking": "INICIAR REGISTRO DE {{count}} PESSOAS",
     "autoClockOut": "(Check-out Automático Ativado)",
     "noPeopleRegistered": "Nenhuma pessoa cadastrada via /pessoas ainda.",
+    "allWorking": "Todos já estão trabalhando no momento.",
     "createVenues": "⚠️ Crie locais primeiro.",
     "clockOutAllConfirm": "Deseja encerrar o turno de todas as pessoas que estão trabalhando agora?",
+    "clockOutIndividualConfirm": "Deseja encerrar o turno desta pessoa?",
     "selectTime": "Selecionar Horário",
     "confirmClockOut": "Confirmar Saída"
   },
