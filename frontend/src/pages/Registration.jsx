@@ -63,18 +63,24 @@ const Registration = () => {
   const [isManualMode, setIsManualMode] = useState(false);
   const [startTime, setStartTime] = useState(''); // Used when isManualMode=true
   const [endTime, setEndTime] = useState('');     // Used when isManualMode=true (Optional Clock-out)
+  const [entryComment, setEntryComment] = useState(''); // For new entries
+  const [entryType, setEntryType] = useState('work'); 
   
   // Clock-out Modal State
   const [showClockOutModal, setShowClockOutModal] = useState(false);
   const [isManualClockOut, setIsManualClockOut] = useState(false);
   const [manualClockOutTime, setManualClockOutTime] = useState('');
-
+  const [clockOutComment, setClockOutComment] = useState('');
+  const [clockOutType, setClockOutType] = useState('work');
+  
   // Individual Clock-out Modal State
   const [showIndivClockOutModal, setShowIndivClockOutModal] = useState(false);
   const [selectedLogId, setSelectedLogId] = useState(null);
   const [isManualIndivClockOut, setIsManualIndivClockOut] = useState(false);
   const [manualIndivClockOutTime, setManualIndivClockOutTime] = useState('');
-
+  const [indivClockOutComment, setIndivClockOutComment] = useState('');
+  const [indivClockOutType, setIndivClockOutType] = useState('work');
+  
 
   useEffect(() => {
     fetchData();
@@ -136,7 +142,10 @@ const Registration = () => {
 
   const confirmIndividualClockOut = async () => {
     try {
-      const payload = {};
+      const payload = {
+        comments: indivClockOutComment,
+        log_type: indivClockOutType
+      };
       if (isManualIndivClockOut && manualIndivClockOutTime) {
         payload.clock_out = new Date(manualIndivClockOutTime).toISOString();
       }
@@ -161,7 +170,10 @@ const Registration = () => {
 
   const confirmClockOutAll = async () => {
     try {
-      const payload = {};
+      const payload = {
+        comments: clockOutComment,
+        log_type: clockOutType
+      };
       if (isManualClockOut && manualClockOutTime) {
         payload.clock_out = new Date(manualClockOutTime).toISOString();
       }
@@ -180,6 +192,8 @@ const Registration = () => {
     setIsManualMode(false);
     setStartTime('');
     setEndTime('');
+    setEntryComment('');
+    setEntryType('work');
   };
 
   const setModeManual = () => {
@@ -204,7 +218,9 @@ const Registration = () => {
         person_ids: selectedPeople,
         location_id: locationId,
         clock_in: isManualMode ? new Date(startTime).toISOString() : 'Now',
-        clock_out: (isManualMode && endTime) ? new Date(endTime).toISOString() : null
+        clock_out: (isManualMode && endTime) ? new Date(endTime).toISOString() : null,
+        comments: entryComment,
+        log_type: entryType
       });
       
       setSelectedPeople([]);
@@ -415,6 +431,32 @@ const Registration = () => {
                          {t('registration.manual')}
                        </Badge>
                     </div>
+
+                    <div className="mt-2">
+                      <Form.Label className="small fw-bold text-muted uppercase">{t('reports.logType')}</Form.Label>
+                      <Form.Select 
+                        className="bg-light border-0 p-2 shadow-none mb-2" 
+                        style={{ borderRadius: '10px', fontSize: '0.85rem' }}
+                        value={entryType}
+                        onChange={(e) => setEntryType(e.target.value)}
+                      >
+                        <option value="work">{t('reports.work')}</option>
+                        <option value="sick">{t('reports.sick')}</option>
+                        <option value="holiday">{t('reports.holiday')}</option>
+                        <option value="missing">{t('reports.missing')}</option>
+                      </Form.Select>
+
+                      <Form.Label className="small fw-bold text-muted uppercase">{t('reports.comments')}</Form.Label>
+                      <Form.Control 
+                        as="textarea" 
+                        rows={2} 
+                        className="bg-light border-0 p-2 shadow-none" 
+                        style={{ borderRadius: '10px', fontSize: '0.85rem' }}
+                        value={entryComment}
+                        onChange={(e) => setEntryComment(e.target.value)}
+                        placeholder="..."
+                      />
+                    </div>
                   </div>
 
                   <div className="mt-2">
@@ -456,7 +498,6 @@ const Registration = () => {
               📅 {t('registration.manual')}
             </button>
           </div>
-
           {isManualClockOut && (
             <div className="mb-3 animate__animated animate__fadeIn">
               <Form.Label className="small fw-bold text-muted uppercase">{t('registration.selectTime', 'Selecionar Horário')}</Form.Label>
@@ -469,6 +510,32 @@ const Registration = () => {
               />
             </div>
           )}
+
+          <div className="mt-4">
+            <Form.Label className="small fw-bold text-muted uppercase">{t('reports.logType')}</Form.Label>
+            <Form.Select 
+              className="bg-light border-0 p-2 shadow-none mb-3" 
+              style={{ borderRadius: '10px' }}
+              value={clockOutType}
+              onChange={(e) => setClockOutType(e.target.value)}
+            >
+              <option value="work">{t('reports.work')}</option>
+              <option value="sick">{t('reports.sick')}</option>
+              <option value="holiday">{t('reports.holiday')}</option>
+              <option value="missing">{t('reports.missing')}</option>
+            </Form.Select>
+
+            <Form.Label className="small fw-bold text-muted uppercase">{t('reports.comments')}</Form.Label>
+            <Form.Control 
+              as="textarea" 
+              rows={2} 
+              className="bg-light border-0 p-2 shadow-none" 
+              style={{ borderRadius: '10px' }}
+              value={clockOutComment}
+              onChange={(e) => setClockOutComment(e.target.value)}
+              placeholder="..."
+            />
+          </div>
         </Modal.Body>
         <Modal.Footer className="border-0 pt-3 pb-4 d-flex flex-column flex-sm-row justify-content-center gap-2">
           <Button 
@@ -511,7 +578,6 @@ const Registration = () => {
               📅 {t('registration.manual')}
             </button>
           </div>
-
           {isManualIndivClockOut && (
             <div className="mb-3 animate__animated animate__fadeIn">
               <Form.Label className="small fw-bold text-muted uppercase">{t('registration.selectTime', 'Selecionar Horário')}</Form.Label>
@@ -524,6 +590,32 @@ const Registration = () => {
               />
             </div>
           )}
+
+          <div className="mt-4">
+            <Form.Label className="small fw-bold text-muted uppercase">{t('reports.logType')}</Form.Label>
+            <Form.Select 
+              className="bg-light border-0 p-2 shadow-none mb-3" 
+              style={{ borderRadius: '10px' }}
+              value={indivClockOutType}
+              onChange={(e) => setIndivClockOutType(e.target.value)}
+            >
+              <option value="work">{t('reports.work')}</option>
+              <option value="sick">{t('reports.sick')}</option>
+              <option value="holiday">{t('reports.holiday')}</option>
+              <option value="missing">{t('reports.missing')}</option>
+            </Form.Select>
+
+            <Form.Label className="small fw-bold text-muted uppercase">{t('reports.comments')}</Form.Label>
+            <Form.Control 
+              as="textarea" 
+              rows={2} 
+              className="bg-light border-0 p-2 shadow-none" 
+              style={{ borderRadius: '10px' }}
+              value={indivClockOutComment}
+              onChange={(e) => setIndivClockOutComment(e.target.value)}
+              placeholder="..."
+            />
+          </div>
         </Modal.Body>
         <Modal.Footer className="border-0 pt-3 pb-4 d-flex flex-column flex-sm-row justify-content-center gap-2">
           <Button 

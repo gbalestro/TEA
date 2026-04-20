@@ -129,14 +129,27 @@ class TimeLogViewSet(viewsets.ModelViewSet):
         if not clock_out_time:
             clock_out_time = None
 
+        log_type = request.data.get('log_type', 'work')
+        
         logs = []
         for p_id in person_ids:
+            # If it's not a work entry, we auto-complete it immediately
+            final_clock_out = clock_out_time
+            is_comp = bool(clock_out_time)
+            
+            if log_type != 'work':
+                is_comp = True
+                if not final_clock_out:
+                    final_clock_out = clock_in_time # Mark as 0-duration day entry
+
             log = TimeLog.objects.create(
                 person_id=p_id,
                 location_id=location_id,
                 clock_in=clock_in_time,
-                clock_out=clock_out_time,
-                is_completed=bool(clock_out_time)
+                clock_out=final_clock_out,
+                is_completed=is_comp,
+                comments=request.data.get('comments'),
+                log_type=log_type
             )
             logs.append(TimeLogSerializer(log).data)
 
@@ -153,6 +166,14 @@ class TimeLogViewSet(viewsets.ModelViewSet):
         else:
             log.clock_out = timezone.now()
             
+        comments = request.data.get('comments')
+        if comments:
+            log.comments = comments
+            
+        log_type = request.data.get('log_type')
+        if log_type:
+            log.log_type = log_type
+            
         log.is_completed = True
         log.save()
         return Response(TimeLogSerializer(log).data)
@@ -167,9 +188,15 @@ class TimeLogViewSet(viewsets.ModelViewSet):
             
         active_logs = TimeLog.objects.filter(clock_out__isnull=True)
         count = active_logs.count()
+        comments = request.data.get('comments')
+        log_type = request.data.get('log_type')
         for log in active_logs:
             log.clock_out = clock_out_time
             log.is_completed = True
+            if comments:
+                log.comments = comments
+            if log_type:
+                log.log_type = log_type
             log.save()
         return Response({'message': f'{count} logs closed successfully'}, status=status.HTTP_200_OK)
 
@@ -205,9 +232,17 @@ class TimeLogViewSet(viewsets.ModelViewSet):
 
         for p in people:
             p_logs = logs.filter(person=p)
-            total_duration = sum((log.clock_out - log.clock_in).total_seconds() for log in p_logs)
+            
+            # Only calculate hours and cost for WORK entries
+            work_logs = p_logs.filter(log_type='work')
+            total_duration = sum((log.clock_out - log.clock_in).total_seconds() for log in work_logs)
             hours = total_duration / 3600.0
             total_hours += hours
+            
+            # Count unique days for Sick, Holiday and Missing
+            sick_days = p_logs.filter(log_type='sick').values_list('clock_in__date', flat=True).distinct().count()
+            holiday_days = p_logs.filter(log_type='holiday').values_list('clock_in__date', flat=True).distinct().count()
+            missing_days = p_logs.filter(log_type='missing').values_list('clock_in__date', flat=True).distinct().count()
             
             # Get unique location names for this person in this period
             venue_names = sorted(list(set(p_logs.values_list('location__name', flat=True))))
@@ -228,7 +263,10 @@ class TimeLogViewSet(viewsets.ModelViewSet):
                 'horas': hours,
                 'hourly_rate': rate,
                 'total_cost': person_cost,
-                'locais': locais_str
+                'locais': locais_str,
+                'sick_days': sick_days,
+                'holiday_days': holiday_days,
+                'missing_days': missing_days
             })
 
         # Sort by total hours descending
@@ -244,12 +282,17 @@ class TimeLogViewSet(viewsets.ModelViewSet):
                 'location_name': log.location.name,
                 'clock_in': log.clock_in.strftime("%Y-%m-%dT%H:%M:%SZ"),
                 'clock_out': log.clock_out.strftime("%Y-%m-%dT%H:%M:%SZ") if log.clock_out else None,
+                'comments': log.comments,
+                'log_type': log.log_type,
             })
 
         return Response({
             'total_hours': total_hours,
             'total_spending': total_spending,
             'collaborators_count': people.count(),
+            'total_sick_days': logs.filter(log_type='sick').values_list('clock_in__date', flat=True).distinct().count(),
+            'total_holiday_days': logs.filter(log_type='holiday').values_list('clock_in__date', flat=True).distinct().count(),
+            'total_missing_days': logs.filter(log_type='missing').values_list('clock_in__date', flat=True).distinct().count(),
             'average_hours': total_hours / people.count() if people.count() > 0 else 0,
             'breakdown': report_data,
             'raw_logs': raw_logs

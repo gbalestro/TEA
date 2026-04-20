@@ -85,7 +85,9 @@ const Reports = () => {
     person: '',
     location: '',
     clock_in: '',
-    clock_out: ''
+    clock_out: '',
+    comments: '',
+    log_type: 'work'
   });
 
   // Sorting state
@@ -167,7 +169,9 @@ const Reports = () => {
       person: log.person_id,
       location: log.location_id,
       clock_in: toLocalISOString(log.clock_in),
-      clock_out: toLocalISOString(log.clock_out)
+      clock_out: toLocalISOString(log.clock_out),
+      comments: log.comments || '',
+      log_type: log.log_type || 'work'
     });
     setShowEditLogModal(true);
   };
@@ -187,7 +191,9 @@ const Reports = () => {
         location: logFormData.location,
         clock_in: new Date(logFormData.clock_in).toISOString(),
         clock_out: logFormData.clock_out ? new Date(logFormData.clock_out).toISOString() : null,
-        is_completed: !!logFormData.clock_out
+        is_completed: !!logFormData.clock_out,
+        comments: logFormData.comments,
+        log_type: logFormData.log_type
       };
       await axios.put(`${API_BASE}/logs/${logFormData.id}/`, payload);
       setShowEditLogModal(false);
@@ -241,12 +247,14 @@ const Reports = () => {
       doc.save(`relatorio_${startDate}_${endDate}.pdf`);
     } else {
       if (!reportData.raw_logs || reportData.raw_logs.length === 0) return alert("Não há dados.");
-      const tableColumn = ["Data Entrada", "Data Saida", "Colaborador", "Local"];
+      const tableColumn = ["Data Entrada", "Data Saida", "Colaborador", "Local", "Tipo", "Observações"];
       const tableRows = reportData.raw_logs.map(log => [
         formatDateTime(log.clock_in),
         log.clock_out ? formatDateTime(log.clock_out) : 'Ativo',
         log.person_name,
-        log.location_name
+        log.location_name,
+        t(`reports.${log.log_type}`),
+        log.comments || ''
       ]);
       autoTable(doc, { head: [tableColumn], body: tableRows, startY: yPos });
       doc.save(`extrato_detalhado_${startDate}_${endDate}.pdf`);
@@ -271,7 +279,9 @@ const Reports = () => {
         "Entrada": formatDateTime(log.clock_in),
         "Saída": log.clock_out ? formatDateTime(log.clock_out) : 'Ativo',
         "Colaborador": log.person_name,
-        "Local": log.location_name
+        "Local": log.location_name,
+        "Tipo": t(`reports.${log.log_type}`),
+        "Observações": log.comments || ''
       }));
     }
 
@@ -495,6 +505,43 @@ const Reports = () => {
         </Col>
       </Row>
 
+      {/* 🤒 SICK, HOLIDAY & MISSING SUMMARY */}
+      <Row className="mb-4 g-3">
+        <Col xs={12} md={4}>
+          <div className="card-premium p-3 border shadow-sm bg-white d-flex align-items-center gap-3 rounded-4">
+            <div className="bg-danger-subtle rounded-3 p-3">
+              <Badge bg="danger" className="p-2">{reportData.total_sick_days || 0}</Badge>
+            </div>
+            <div>
+              <h6 className="fw-bold mb-0">{t('reports.sick')}</h6>
+              <span className="text-muted small">{t('reports.totalHoursPeriod')}</span>
+            </div>
+          </div>
+        </Col>
+        <Col xs={12} md={4}>
+          <div className="card-premium p-3 border shadow-sm bg-white d-flex align-items-center gap-3 rounded-4">
+            <div className="bg-info-subtle rounded-3 p-3">
+              <Badge bg="info" className="p-2">{reportData.total_holiday_days || 0}</Badge>
+            </div>
+            <div>
+              <h6 className="fw-bold mb-0">{t('reports.holiday')}</h6>
+              <span className="text-muted small">{t('reports.totalHoursPeriod')}</span>
+            </div>
+          </div>
+        </Col>
+        <Col xs={12} md={4}>
+          <div className="card-premium p-3 border shadow-sm bg-white d-flex align-items-center gap-3 rounded-4">
+            <div className="bg-warning-subtle rounded-3 p-3">
+              <Badge bg="warning" className="p-2 text-dark">{reportData.total_missing_days || 0}</Badge>
+            </div>
+            <div>
+              <h6 className="fw-bold mb-0">{t('reports.missing')}</h6>
+              <span className="text-muted small">{t('reports.totalHoursPeriod')}</span>
+            </div>
+          </div>
+        </Col>
+      </Row>
+
       {/* 📃 RESULTS VIEW SWITCHER */}
       <div className="card-premium bg-white border shadow-sm rounded-4 overflow-hidden mb-5">
         <div className="p-4 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
@@ -578,9 +625,16 @@ const Reports = () => {
                     </div>
                   </td>
                   <td className="py-3 text-center">
-                    <Badge bg="light" text="dark" className="border px-2 py-1 text-wrap" style={{ borderRadius: '6px', maxWidth: '220px', fontWeight: '500', fontSize: '0.75rem' }}>
-                      {row.locais}
-                    </Badge>
+                    <div className="d-flex flex-column align-items-center gap-1">
+                      <Badge bg="light" text="dark" className="border px-2 py-1 text-wrap" style={{ borderRadius: '6px', maxWidth: '220px', fontWeight: '500', fontSize: '0.75rem' }}>
+                        {row.locais}
+                      </Badge>
+                      <div className="d-flex gap-1 mt-1">
+                        {row.sick_days > 0 && <Badge bg="danger-subtle" text="danger" className="border-danger border-opacity-10">{row.sick_days} {t('reports.sick')}</Badge>}
+                        {row.holiday_days > 0 && <Badge bg="info-subtle" text="info" className="border-info border-opacity-10">{row.holiday_days} {t('reports.holiday')}</Badge>}
+                        {row.missing_days > 0 && <Badge bg="warning-subtle" text="warning" className="border-warning border-opacity-10 text-dark">{row.missing_days} {t('reports.missing')}</Badge>}
+                      </div>
+                    </div>
                   </td>
                   <td className="py-3 text-end">
                     <div className="fw-bold text-primary fs-5">{row.horas.toFixed(1)}h</div>
@@ -634,6 +688,8 @@ const Reports = () => {
                 >
                   {t('sidebar.venues')} <SortIcon columnKey="location_name" />
                 </th>
+                <th className="py-3 text-muted uppercase small fw-bold">{t('reports.logType')}</th>
+                <th className="py-3 text-muted uppercase small fw-bold" style={{ minWidth: '150px' }}>{t('reports.comments')}</th>
                 <th className="py-3 text-muted uppercase small fw-bold text-end pe-4">{t('reports.action')}</th>
               </tr>
             </thead>
@@ -648,6 +704,18 @@ const Reports = () => {
                   </td>
                   <td className="py-3 fw-600">{log.person_name}</td>
                   <td className="py-3 text-muted">{log.location_name}</td>
+                  <td className="py-3">
+                    <Badge 
+                      bg={log.log_type === 'sick' ? 'danger' : log.log_type === 'holiday' ? 'info' : log.log_type === 'missing' ? 'warning' : 'success'} 
+                      text={log.log_type === 'missing' ? 'dark' : 'white'}
+                      style={{ fontSize: '0.65rem', textTransform: 'uppercase' }}
+                    >
+                      {t(`reports.${log.log_type}`)}
+                    </Badge>
+                  </td>
+                  <td className="py-3 text-muted small" style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={log.comments}>
+                    {log.comments || '-'}
+                  </td>
                   <td className="py-3 text-end pe-4">
                     <button className="btn btn-sm btn-light border py-1 px-2 text-primary" onClick={() => openEditLogModal(log)}>
                       <PencilSquare /> {t('reports.edit')}
@@ -701,12 +769,35 @@ const Reports = () => {
                 </Form.Group>
               </Col>
               <Col sm={6}>
-                <Form.Group className="mb-4">
+                <Form.Group className="mb-3">
                   <Form.Label className="small fw-bold text-muted">{t('reports.clockOut')}</Form.Label>
                   <Form.Control type="datetime-local" name="clock_out" value={logFormData.clock_out || ''} onChange={handleLogFormChange} className="bg-light border-0 p-2 rounded-3" />
                 </Form.Group>
               </Col>
             </Row>
+
+            <Form.Group className="mb-3">
+              <Form.Label className="small fw-bold text-muted">{t('reports.logType')}</Form.Label>
+              <Form.Select name="log_type" value={logFormData.log_type} onChange={handleLogFormChange} className="bg-light border-0 p-2 rounded-3">
+                <option value="work">{t('reports.work')}</option>
+                <option value="sick">{t('reports.sick')}</option>
+                <option value="holiday">{t('reports.holiday')}</option>
+                <option value="missing">{t('reports.missing')}</option>
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-2">
+              <Form.Label className="small fw-bold text-muted">{t('reports.comments')}</Form.Label>
+              <Form.Control 
+                as="textarea" 
+                rows={3} 
+                name="comments" 
+                value={logFormData.comments} 
+                onChange={handleLogFormChange} 
+                placeholder="..."
+                className="bg-light border-0 p-2 rounded-3" 
+              />
+            </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer className="border-0 pt-0 pb-4 px-4 d-flex justify-content-between">

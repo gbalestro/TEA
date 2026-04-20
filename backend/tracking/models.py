@@ -44,11 +44,19 @@ class Location(models.Model):
         verbose_name_plural = "Locais"
 
 class TimeLog(models.Model):
+    LOG_TYPE_CHOICES = [
+        ('work', 'Work'),
+        ('sick', 'Sick Day'),
+        ('holiday', 'Holiday'),
+        ('missing', 'Missing'),
+    ]
     person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='logs')
     location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='logs')
     clock_in = models.DateTimeField(verbose_name="Entrada")
     clock_out = models.DateTimeField(null=True, blank=True, verbose_name="Saída")
     is_completed = models.BooleanField(default=False)
+    comments = models.TextField(null=True, blank=True, verbose_name="Observações")
+    log_type = models.CharField(max_length=10, choices=LOG_TYPE_CHOICES, default='work', verbose_name="Tipo")
 
     def __str__(self):
         return f"{self.person.name} @ {self.location.name} ({self.clock_in})"

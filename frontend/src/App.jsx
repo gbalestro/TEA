@@ -102,6 +102,9 @@ function App() {
   // If we are on the login page, don't show the layout (sidebar/header)
   // BUT allow /about to be accessed with or without login
   if (isLoginPage) {
+    if (isAuthenticated) {
+      return <Navigate to="/" />;
+    }
     return (
       <Routes>
         <Route path="/login" element={<Login />} />
