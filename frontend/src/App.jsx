@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Dropdown } from 'react-bootstrap';
 import { Routes, Route, NavLink, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import {
   Speedometer2,
@@ -76,11 +77,6 @@ function App() {
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
-  };
-
-  const toggleLanguage = () => {
-    const newLang = i18n.language.startsWith('pt') ? 'en' : 'pt';
-    i18n.changeLanguage(newLang);
   };
 
   const getPageConfig = (path) => {
@@ -197,19 +193,45 @@ function App() {
             <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{theme === 'light' ? t('sidebar.darkMode') : t('sidebar.lightMode')}</span>
           </div>
 
-          <div
-            className="language-toggle"
-            onClick={toggleLanguage}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '0.75rem',
-              padding: '0.5rem 1rem', borderRadius: '8px',
-              cursor: 'pointer', backgroundColor: 'rgba(255,255,255,0.05)',
-              transition: 'var(--transition)'
-            }}
-          >
-            <span style={{ fontSize: '1.1rem' }}>{i18n.language.startsWith('pt') ? '🇮🇪' : '🇧🇷'}</span>
-            <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{i18n.language.startsWith('pt') ? 'English' : 'Português'}</span>
-          </div>
+          <Dropdown drop="up" className="language-dropdown w-100">
+            <Dropdown.Toggle 
+              as="div" 
+              className="language-select-trigger"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.75rem',
+                padding: '0.5rem 1rem', borderRadius: '8px',
+                cursor: 'pointer', backgroundColor: 'rgba(255,255,255,0.05)',
+                transition: 'var(--transition)',
+                border: 'none'
+              }}
+            >
+              <span style={{ fontSize: '1.1rem' }}>{i18n.language.startsWith('pt') ? '🇧🇷' : '🇮🇪'}</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{i18n.language.startsWith('pt') ? 'Português' : 'English'}</span>
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu 
+              className="shadow border-0 p-1" 
+              style={{ 
+                borderRadius: '12px', 
+                minWidth: '160px',
+                backgroundColor: theme === 'light' ? '#ffffff' : '#1e1e2d',
+                marginBottom: '10px'
+              }}
+            >
+              <Dropdown.Item 
+                onClick={() => i18n.changeLanguage('en')} 
+                className={`d-flex align-items-center gap-2 py-2 rounded-2 ${!i18n.language.startsWith('pt') ? 'bg-primary text-white' : theme === 'light' ? 'text-dark' : 'text-white-50'}`}
+              >
+                <span style={{ fontSize: '1.1rem' }}>🇮🇪</span> English
+              </Dropdown.Item>
+              <Dropdown.Item 
+                onClick={() => i18n.changeLanguage('pt')} 
+                className={`d-flex align-items-center gap-2 py-2 rounded-2 ${i18n.language.startsWith('pt') ? 'bg-primary text-white' : theme === 'light' ? 'text-dark' : 'text-white-50'}`}
+              >
+                <span style={{ fontSize: '1.1rem' }}>🇧🇷</span> Português
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
 
           {isAuthenticated ? (
             <div 
